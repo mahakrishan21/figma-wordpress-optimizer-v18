@@ -1,0 +1,2014 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      color-scheme: light dark;
+      /* Blues */
+      --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe;
+      --blue-400: #60a5fa; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+      /* Grays */
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db;
+      --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
+      --gray-800: #1f2937; --gray-900: #111827;
+      /* Semantic */
+      --green-50: #f0fdf4; --green-100: #dcfce7; --green-600: #16a34a; --green-700: #15803d;
+      --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-600: #d97706; --amber-700: #b45309;
+      --red-50: #fef2f2;  --red-100: #fee2e2;  --red-600: #dc2626;  --red-700: #b91c1c;
+      --violet-50: #f5f3ff; --violet-100: #ede9fe; --violet-600: #7c3aed; --violet-700: #6d28d9;
+      /* Surfaces */
+      --surface: #ffffff; --surface-raised: #f9fafb;
+      --border: #e5e7eb; --border-strong: #d1d5db;
+      --text-primary: #111827; --text-secondary: #4b5563; --text-muted: #9ca3af;
+      --radius-sm: 5px; --radius-md: 8px; --radius-lg: 10px; --radius-xl: 14px; --radius-full: 9999px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / .05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / .07), 0 2px 4px -2px rgb(0 0 0 / .05);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface: #1f2937; --surface-raised: #111827;
+        --border: #374151; --border-strong: #4b5563;
+        --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #6b7280;
+        --blue-50: #1e3a5f; --blue-100: #1e40af22;
+        --green-50: #052e16; --green-100: #14532d22;
+        --amber-50: #431407; --amber-100: #92400e22;
+        --red-50: #450a0a;  --red-100: #7f1d1d22;
+        --gray-50: #1f2937; --gray-100: #374151;
+      }
+    }
+
+    body {
+      font: 12px/1.5 -apple-system, 'Inter', system-ui, sans-serif;
+      background: var(--surface-raised);
+      color: var(--text-primary);
+    }
+
+    /* ── Header ────────────────────────────────────────────────────────────── */
+    .header {
+      background: var(--blue-600);
+      padding: 12px 16px 0;
+    }
+    .header-top {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .header-icon {
+      width: 30px; height: 30px; flex-shrink: 0;
+      background: rgba(255,255,255,.18); border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+    .header-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
+    .header-sub   { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 1px; }
+
+    /* ── Tabs ──────────────────────────────────────────────────────────────── */
+    .tabs { display: flex; gap: 0; }
+    .tab {
+      padding: 8px 16px; font-size: 12px; font-weight: 500;
+      color: rgba(255,255,255,.65); cursor: pointer;
+      border: none; background: none;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .tab:hover  { color: rgba(255,255,255,.9); }
+    .tab.active { color: #fff; border-bottom-color: #fff; }
+    .tab:focus-visible { outline: 2px solid rgba(255,255,255,.5); outline-offset: -2px; }
+
+    /* ── Tab panels ────────────────────────────────────────────────────────── */
+    .tab-panel { display: none; padding: 14px 16px; }
+    .tab-panel.active { display: block; }
+
+    /* ── Buttons ───────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 11px; border-radius: var(--radius-md);
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-primary); font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: background .13s, border-color .13s, color .13s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) {
+      border-color: var(--blue-400); color: var(--blue-700); background: var(--blue-50);
+    }
+    .btn:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 1px; }
+    .btn:disabled { opacity: .5; cursor: wait; }
+
+    .btn-primary {
+      background: var(--blue-600); border-color: var(--blue-600); color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--blue-700); border-color: var(--blue-700); color: #fff;
+    }
+
+    .btn-sm {
+      padding: 4px 10px; font-size: 11px; font-weight: 500;
+      border-radius: var(--radius-sm);
+    }
+    .btn-sm.danger:hover:not(:disabled) {
+      border-color: var(--red-600); color: var(--red-700); background: var(--red-50);
+    }
+
+    /* ── Toolbar ───────────────────────────────────────────────────────────── */
+    .toolbar {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px;
+    }
+    .toolbar .btn-primary { grid-column: 1 / -1; }
+    .btn-icon { width: 16px; height: 16px; flex-shrink: 0; fill: currentColor; }
+
+    /* ── Scope badge ───────────────────────────────────────────────────────── */
+    .scope-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; min-height: 22px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: var(--radius-full);
+      font-size: 11px; font-weight: 500; border: 1px solid;
+    }
+    .badge-blue   { background: var(--blue-50);   color: var(--blue-700);   border-color: var(--blue-200); }
+    .badge-green  { background: var(--green-50);  color: var(--green-700);  border-color: var(--green-100); }
+    .badge-amber  { background: var(--amber-50);  color: var(--amber-700);  border-color: var(--amber-100); }
+    .badge-red    { background: var(--red-50);    color: var(--red-700);    border-color: var(--red-100); }
+    .badge-gray   { background: var(--gray-100);  color: var(--gray-600);   border-color: var(--gray-200); }
+    .badge-violet { background: var(--violet-50); color: var(--violet-700); border-color: var(--violet-100); }
+
+    /* ── Progress ──────────────────────────────────────────────────────────── */
+    .progress-wrap { margin-bottom: 10px; display: none; }
+    .progress-wrap.active { display: block; }
+    .progress-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;
+    }
+    .progress-track {
+      height: 4px; background: var(--gray-200);
+      border-radius: var(--radius-full); overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: var(--blue-500);
+      border-radius: var(--radius-full); transition: width .2s;
+      width: 10%;
+    }
+
+    /* ── Message bar ───────────────────────────────────────────────────────── */
+    .msg-bar {
+      display: none; padding: 7px 11px; border-radius: var(--radius-md);
+      font-size: 11px; border: 1px solid; margin-bottom: 10px; line-height: 1.4;
+    }
+    .msg-bar.visible { display: block; }
+    .msg-bar.info    { background: var(--blue-50);  color: var(--blue-700);  border-color: var(--blue-100); }
+    .msg-bar.success { background: var(--green-50); color: var(--green-700); border-color: var(--green-100); }
+    .msg-bar.warning { background: var(--amber-50); color: var(--amber-700); border-color: var(--amber-100); }
+    .msg-bar.error   { background: var(--red-50);   color: var(--red-700);   border-color: var(--red-100); }
+
+    /* ── Stats grid ────────────────────────────────────────────────────────── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 8px 10px; text-align: center;
+    }
+    .stat-val  { font-size: 18px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
+    .stat-val.ok  { color: var(--green-600); }
+    .stat-val.bad { color: var(--red-600); }
+    .stat-val.muted { color: var(--text-muted); }
+    .stat-lbl  { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
+    .stat-sub  { font-size: 10px; color: var(--blue-600); margin-top: 2px; }
+
+    /* ── Section label ─────────────────────────────────────────────────────── */
+    .section-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    }
+    .section-lbl {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--text-primary);
+    }
+
+    /* ── Ignore bar ────────────────────────────────────────────────────────── */
+    .ignore-bar {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .ignore-note { font-size: 11px; color: var(--text-muted); flex: 1; }
+
+    /* ── Issue groups ──────────────────────────────────────────────────────── */
+    .issue-groups {
+      display: flex; flex-direction: column; gap: 6px;
+      max-height: 400px; overflow-y: auto;
+      padding-right: 2px; padding-bottom: 2px;
+    }
+    .issue-groups::-webkit-scrollbar { width: 4px; }
+    .issue-groups::-webkit-scrollbar-track { background: var(--gray-100); border-radius: var(--radius-full); }
+    .issue-groups::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: var(--radius-full); }
+
+    /* overflow:clip clips to border-radius but does NOT create a scroll context,
+       so position:sticky on .group-head correctly references .issue-groups. */
+    .issue-group {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: clip; flex-shrink: 0;
+    }
+
+    /* Per-category left accent — 3px replaces the 1px left side of the outer border */
+    .issue-group[data-cat="accuracy"]    { border-left: 3px solid var(--red-500); }
+    .issue-group[data-cat="structure"]  { border-left: 3px solid var(--blue-500); }
+    .issue-group[data-cat="styles"]     { border-left: 3px solid var(--violet-600); }
+    .issue-group[data-cat="buttons"]    { border-left: 3px solid var(--amber-600); }
+    .issue-group[data-cat="assets"]     { border-left: 3px solid var(--green-600); }
+    .issue-group[data-cat="cleanup"]    { border-left: 3px solid var(--gray-400); }
+    .issue-group[data-cat="spelling"]    { border-left: 3px solid var(--red-600); }
+    .issue-group[data-cat="grammar"]     { border-left: 3px solid var(--amber-600); }
+    .issue-group[data-cat="punctuation"] { border-left: 3px solid var(--blue-500); }
+    .issue-group[data-cat="readability"] { border-left: 3px solid var(--green-600); }
+
+    /* Sticky header — sticks at top of the .issue-groups scroll container */
+    .group-head {
+      display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+      cursor: pointer; user-select: none;
+      position: sticky; top: 0; z-index: 2;
+      background: var(--surface);
+      border-bottom: 1px solid transparent;
+      transition: background .12s, border-color .12s;
+    }
+    /* Reveal separator between header and expanded issue list */
+    .issue-group:not(.collapsed) .group-head { border-bottom-color: var(--border); }
+    .group-head:hover { background: var(--gray-50); }
+
+    .group-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .dot-structure   { background: var(--blue-500); }
+    .dot-styles      { background: var(--violet-600); }
+    .dot-buttons     { background: var(--amber-600); }
+    .dot-assets      { background: var(--green-600); }
+    .dot-cleanup     { background: var(--gray-400); }
+    .dot-spelling    { background: var(--red-600); }
+    .dot-grammar     { background: var(--amber-600); }
+    .dot-punct       { background: var(--blue-500); }
+    .dot-readability { background: var(--green-600); }
+
+    .group-name { font-size: 13px; font-weight: 700; flex: 1; color: var(--text-primary); }
+
+    /* Blue badge — clearly readable against the white header background */
+    .group-count {
+      background: var(--blue-50); color: var(--blue-700);
+      border: 1px solid var(--blue-200);
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: var(--radius-full);
+      min-width: 28px; text-align: center;
+    }
+
+    /* Chevron: bigger, bolder, animated rotate */
+    .chevron {
+      width: 16px; height: 16px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); font-size: 14px; font-weight: 700;
+      transition: transform .15s; line-height: 1;
+    }
+    .issue-group.collapsed .chevron { transform: rotate(-90deg); }
+    .issue-group.collapsed .issue-list { display: none; }
+
+    .issue-list { border-top: 1px solid var(--border); }
+    .issue-item {
+      padding: 9px 12px; border-bottom: 1px solid var(--gray-100);
+      transition: background .1s;
+    }
+    .issue-item:last-child { border-bottom: none; }
+    .issue-item:hover { background: var(--gray-50); }
+
+    .issue-top { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 4px; }
+    .issue-msg { font-size: 12px; font-weight: 500; flex: 1; line-height: 1.4; }
+    .issue-path { font-size: 10px; color: var(--text-muted); font-family: monospace; margin-bottom: 5px; }
+    .issue-status { font-size: 10px; font-weight: 600; margin-bottom: 5px; }
+    .issue-status.ok  { color: var(--green-600); }
+    .issue-status.warn { color: var(--amber-600); }
+    .issue-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    /* ── v17: Expandable why/how-to-fix panel ───────────────────────────── */
+    .issue-detail {
+      display: none; margin-top: 8px; padding: 10px 12px;
+      background: var(--blue-50); border: 1px solid var(--blue-100);
+      border-radius: var(--radius-md); font-size: 11px;
+    }
+    .issue-detail.open { display: block; }
+    .issue-detail-why {
+      color: var(--text-secondary); line-height: 1.65; margin-bottom: 8px;
+    }
+    .issue-detail-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .04em;
+      text-transform: uppercase; color: var(--blue-600); margin-bottom: 5px;
+    }
+    .issue-detail-steps {
+      margin: 0; padding-left: 18px; color: var(--text-secondary); line-height: 1.6;
+    }
+    .issue-detail-steps li { margin-bottom: 3px; }
+    .issue-detail-toggle {
+      font-size: 10px; color: var(--blue-600); cursor: pointer; margin-left: auto;
+    }
+    .issue-detail-toggle:hover { background: var(--blue-50); border-color: var(--blue-200); }
+
+    .sev-badge { display: inline-block; padding: 2px 7px; border-radius: var(--radius-full); font-size: 10px; font-weight: 600; border: 1px solid; }
+    .sev-high   { background: var(--red-50);   color: var(--red-700);   border-color: var(--red-100); }
+    .sev-medium { background: var(--amber-50); color: var(--amber-700); border-color: var(--amber-100); }
+    .sev-low    { background: var(--gray-100); color: var(--gray-600);  border-color: var(--gray-200); }
+
+    /* ── Empty state ───────────────────────────────────────────────────────── */
+    .empty {
+      text-align: center; padding: 28px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .empty-icon  { font-size: 28px; margin-bottom: 8px; }
+    .empty-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
+    .empty-desc  { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Footer ────────────────────────────────────────────────────────────── */
+    .footer {
+      position: sticky; bottom: 0; z-index: 10;
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 16px; border-top: 1px solid var(--border);
+      background: var(--surface); box-shadow: 0 -1px 4px rgb(0 0 0 / .05);
+    }
+    .footer-note { font-size: 10px; color: var(--text-muted); flex: 1; line-height: 1.4; }
+
+    /* ── Spelling tab specifics ─────────────────────────────────────────────── */
+    .spell-intro {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px; margin-bottom: 12px;
+    }
+    .spell-intro-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .spell-intro-desc  { font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5; }
+
+    /* Readability card */
+    .read-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 12px; margin-bottom: 12px;
+    }
+    .read-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-secondary); margin-bottom: 10px; }
+    .read-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .score-ring {
+      width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 3px solid var(--gray-300);
+    }
+    .score-ring.excellent { border-color: var(--green-600); }
+    .score-ring.good      { border-color: var(--blue-500); }
+    .score-ring.fair      { border-color: var(--amber-600); }
+    .score-ring.poor      { border-color: var(--red-600); }
+    .score-num   { font-size: 17px; font-weight: 800; line-height: 1; color: var(--text-primary); }
+    .score-lbl   { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+    .score-grade { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .score-desc  { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+    .metrics {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    }
+    .metric {
+      background: var(--surface-raised); border-radius: var(--radius-md);
+      padding: 7px; text-align: center;
+    }
+    .metric-val  { font-size: 15px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
+    .metric-name { font-size: 10px; color: var(--text-muted); }
+
+    /* Spell issue item */
+    .spell-item { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); }
+    .spell-item:last-child { border-bottom: none; }
+    .spell-item:hover { background: var(--gray-50); }
+    .spell-ctx {
+      font-size: 12px; font-family: Georgia, serif; line-height: 1.5;
+      margin-bottom: 4px; word-break: break-word;
+    }
+    .hl { background: #fef08a; border-radius: 2px; padding: 0 1px; }
+    .spell-suggest { font-size: 11px; color: var(--blue-700); margin-bottom: 4px; }
+    .spell-suggest strong { font-weight: 600; }
+    .spell-path { font-size: 10px; color: var(--text-muted); font-family: monospace; margin-bottom: 5px; }
+
+    /* Divider */
+    .divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+    /* ── Audit empty state ──────────────────────────────────────────────────── */
+    .audit-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center;
+      padding: 44px 28px 32px; min-height: 470px;
+    }
+
+    /* Illustration */
+    .es-scene {
+      position: relative; width: 108px; height: 108px; margin-bottom: 24px; flex-shrink: 0;
+    }
+    .es-card {
+      position: absolute; bottom: 0; left: 0;
+      width: 88px; height: 88px; border-radius: 20px;
+      background: var(--surface);
+      box-shadow: 0 8px 28px rgba(37,99,235,.13), 0 2px 8px rgba(0,0,0,.07);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .es-badge {
+      position: absolute; top: 0; right: 0;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--blue-100); border: 3px solid var(--surface-raised);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Text */
+    .es-title {
+      font-size: 15px; font-weight: 700; letter-spacing: -.01em;
+      color: var(--text-primary); margin-bottom: 8px;
+    }
+    .es-desc {
+      font-size: 12px; color: var(--text-secondary); line-height: 1.65;
+      max-width: 296px; margin-bottom: 6px;
+    }
+
+    /* Selection hint pill — updates live as selection changes */
+    .es-hint {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 500; color: var(--text-muted);
+      background: var(--gray-100); border: 1px solid var(--border);
+      border-radius: var(--radius-full); padding: 3px 10px;
+      margin-bottom: 24px; transition: background .2s, color .2s, border-color .2s;
+    }
+    .es-hint.ready {
+      background: var(--green-50); color: var(--green-700);
+      border-color: var(--green-100);
+    }
+    .es-hint-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0;
+    }
+
+    /* CTA row */
+    .es-actions { display: flex; gap: 8px; justify-content: center; }
+
+    /* Helper text under the disabled button */
+    .es-helper {
+      font-size: 11px; color: var(--text-muted);
+      margin-top: 10px; letter-spacing: .01em;
+    }
+
+    /* ── Audit ready state (frame selected, not yet audited) ──────────────── */
+    .audit-ready {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center;
+      padding: 44px 28px; min-height: 470px; gap: 12px;
+    }
+    .ar-check {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--green-50); border: 2px solid var(--green-100);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 4px;
+    }
+    .ar-title {
+      font-size: 15px; font-weight: 700; color: var(--text-primary);
+      letter-spacing: -.01em;
+    }
+    .ar-frame-name {
+      font-size: 12px; color: var(--text-secondary);
+      background: var(--gray-100); border: 1px solid var(--border);
+      border-radius: var(--radius-full); padding: 3px 12px;
+      max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      margin-bottom: 8px;
+    }
+    .ar-btn { min-width: 140px; }
+
+    /* ── Typography & Colors tab ─────────────────────────────────────────── */
+    #tab-typo { padding: 0; }
+    .typo-intro { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); }
+    .typo-intro-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+    .typo-intro-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+
+    .typo-results { padding-bottom: 8px; }
+    .typo-section-divider {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px 8px; margin-top: 4px;
+      font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+    .typo-section-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+    .typo-block { border: 1px solid var(--border); border-radius: var(--radius-md); margin: 0 12px 6px; overflow: clip; }
+    .typo-block-head {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 12px; cursor: pointer; background: var(--surface);
+      font-size: 12px; font-weight: 600; color: var(--text-primary);
+      user-select: none;
+    }
+    .typo-block-head:hover { background: var(--gray-50); }
+    .typo-block-head .chevron { margin-left: auto; font-size: 13px; transition: transform .15s; }
+    .typo-block.collapsed .chevron { transform: rotate(-90deg); }
+    .typo-block.collapsed .typo-block-body { display: none; }
+    .typo-block-body { border-top: 1px solid var(--border); }
+
+    .typo-info-banner {
+      font-size: 11px; color: var(--blue-700); background: var(--blue-50);
+      border-bottom: 1px solid var(--blue-100); padding: 8px 12px; line-height: 1.6;
+    }
+    .typo-info-neutral { color: var(--text-secondary); background: var(--gray-50); border-color: var(--border); }
+    .typo-empty { padding: 12px; font-size: 11px; color: var(--text-muted); text-align: center; }
+    .typo-ok { color: var(--green-600); }
+    .typo-more { padding: 6px 12px; font-size: 10px; color: var(--text-muted); }
+    .typo-suggest {
+      font-size: 10px; font-weight: 600; color: var(--amber-600);
+      white-space: nowrap; margin-left: 4px;
+    }
+
+    /* Color rows */
+    .color-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 12px; border-bottom: 1px solid var(--gray-100);
+      font-size: 11px;
+    }
+    .color-row:last-child { border-bottom: none; }
+    .color-swatch {
+      width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0;
+      border: 1px solid rgba(0,0,0,.1);
+    }
+    .color-swatch-lg { width: 36px; height: 36px; border-radius: 7px; }
+    .color-info { flex: 1; min-width: 0; }
+    .color-name { font-size: 11px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .color-hex { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+    .color-hex-large { font-size: 11px; font-family: monospace; }
+    .color-contrast { display: flex; gap: 4px; flex-shrink: 0; }
+    .contrast-badge {
+      font-size: 9px; font-weight: 700; padding: 1px 5px;
+      border-radius: var(--radius-sm); white-space: nowrap;
+    }
+    .contrast-badge.pass { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-100); }
+    .contrast-badge.fail { background: var(--gray-100); color: var(--text-muted); border: 1px solid var(--border); }
+    .color-usage { flex-shrink: 0; }
+    .badge-amber { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+
+    /* Near-dupe groups */
+    .typo-dupe-row { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--gray-100); flex-wrap: wrap; }
+    .typo-dupe-row:last-child { border-bottom: none; }
+    .typo-dupe-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .typo-dupe-sep { font-size: 18px; color: var(--text-muted); padding: 0 4px; }
+    .typo-dup-group { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--gray-100); flex-wrap: wrap; }
+    .typo-dup-group:last-child { border-bottom: none; }
+    .typo-style-chip { font-size: 10px; background: var(--gray-100); border: 1px solid var(--border); border-radius: 3px; padding: 2px 6px; }
+    .typo-dup-arrow { font-size: 14px; color: var(--text-muted); }
+
+    /* Text style rows */
+    .text-style-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 7px 12px; border-bottom: 1px solid var(--gray-100);
+    }
+    .text-style-row:last-child { border-bottom: none; }
+    .text-preview { min-width: 80px; max-width: 110px; flex-shrink: 0; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
+    .text-meta { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; }
+    .text-family { font-size: 11px; font-weight: 500; color: var(--text-primary); }
+    .text-size, .text-lh, .text-ls { font-size: 10px; color: var(--text-muted); background: var(--gray-100); border-radius: 3px; padding: 1px 5px; }
+
+    /* Type scale bars */
+    .typo-scale-table { padding: 8px 12px; }
+    .size-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .size-bar-label { font-size: 10px; font-family: monospace; color: var(--text-secondary); width: 36px; text-align: right; flex-shrink: 0; }
+    .size-bar-track { flex: 1; height: 10px; background: var(--gray-100); border-radius: 99px; overflow: hidden; }
+    .size-bar-fill { height: 100%; background: var(--blue-400); border-radius: 99px; transition: width .3s; }
+    .size-bar-fill.oneoff { background: var(--amber-400, #FBBF24); }
+    .size-bar-count { font-size: 10px; color: var(--text-muted); width: 36px; flex-shrink: 0; }
+    .size-bar-count.oneoff { color: var(--amber-600); }
+
+    /* Font family rows */
+    .typo-font-row { display: flex; align-items: center; gap: 9px; padding: 8px 12px; border-bottom: 1px solid var(--gray-100); }
+    .typo-font-row:last-child { border-bottom: none; }
+    .typo-font-name { font-size: 12px; font-weight: 600; color: var(--text-primary); min-width: 100px; }
+    .typo-font-styles { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; }
+    .typo-font-count { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+
+    /* ── Red scale + extra tokens ────────────────────────────────────────── */
+    :root { --red-50:#fef2f2; --red-100:#fee2e2; --red-500:#ef4444; --red-600:#dc2626;
+            --blue-100:#dbeafe; --blue-200:#bfdbfe; --gray-50:#f9fafb; }
+
+    /* ── Color / typography tables ───────────────────────────────────────── */
+    .tc-table { width:100%; border-collapse:collapse; font-size:11px; }
+    .tc-table th {
+      font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+      color:var(--text-muted); padding:5px 10px; background:var(--gray-50);
+      border-bottom:1px solid var(--border); text-align:left; white-space:nowrap;
+    }
+    .tc-table td { padding:6px 10px; border-bottom:1px solid var(--gray-100); vertical-align:middle; }
+    .tc-table tr:last-child td { border-bottom:none; }
+    .tc-table tbody tr:hover td { background:var(--gray-50); }
+    .tc-name { font-weight:600; color:var(--text-primary); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .tc-mono { font-family:monospace; color:var(--text-secondary); }
+    .tc-muted { color:var(--text-muted); }
+    .tc-num  { white-space:nowrap; color:var(--text-secondary); }
+
+    /* ── WCAG accessibility badges ───────────────────────────────────────── */
+    .wcag-cell { display:flex; flex-direction:column; gap:3px; }
+    .wcag-badge {
+      font-size:10px; font-weight:700; padding:2px 6px; border-radius:var(--radius-sm);
+      white-space:nowrap; display:inline-flex; align-items:center; gap:3px;
+    }
+    .wcag-aaa { background:var(--green-50); color:var(--green-700); border:1px solid var(--green-100); }
+    .wcag-aa  { background:var(--blue-50);  color:var(--blue-700);  border:1px solid var(--blue-100); }
+    .wcag-fail { background:var(--gray-100); color:var(--text-muted); border:1px solid var(--border); text-decoration:line-through; }
+
+    /* ── Merge button & inline form ──────────────────────────────────────── */
+    .merge-btn {
+      font-size:10px; font-weight:600; padding:4px 10px; border-radius:var(--radius-sm);
+      border:1px solid var(--blue-400); color:var(--blue-700); background:var(--blue-50);
+      cursor:pointer; white-space:nowrap; transition:background .12s;
+    }
+    .merge-btn:hover { background:var(--blue-100); }
+    .merge-inline { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+    .merge-name-input {
+      font-size:11px; padding:4px 8px; border:1px solid var(--blue-400);
+      border-radius:var(--radius-sm); background:var(--surface); color:var(--text-primary);
+      min-width:120px; max-width:160px; outline:none;
+    }
+    .merge-name-input:focus { border-color:var(--blue-600); box-shadow:0 0 0 2px var(--blue-50); }
+    .merge-confirm {
+      font-size:10px; font-weight:700; padding:4px 10px; border-radius:var(--radius-sm);
+      border:none; background:var(--blue-600); color:#fff; cursor:pointer;
+    }
+    .merge-confirm:hover { background:var(--blue-700); }
+    .merge-confirm:disabled { opacity:.6; cursor:default; }
+    .merge-cancel {
+      font-size:10px; padding:4px 7px; border-radius:var(--radius-sm);
+      border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); cursor:pointer;
+    }
+    .merge-done { font-size:11px; color:var(--green-700); font-weight:500; }
+
+    /* ── Near-dupe group redesign ────────────────────────────────────────── */
+    .dupe-group { padding:10px 12px; border-bottom:1px solid var(--gray-100); }
+    .dupe-group:last-child { border-bottom:none; }
+    .dupe-swatches { display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .dupe-item { display:flex; flex-direction:column; align-items:center; gap:3px; }
+    .dupe-item-hex { font-size:10px; font-family:monospace; color:var(--text-secondary); }
+    .dupe-item-label { font-size:10px; color:var(--text-muted); max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
+    .dupe-sep { font-size:16px; color:var(--text-muted); align-self:center; margin-top:-10px; }
+    .dupe-footer { display:flex; align-items:center; justify-content:flex-end; }
+
+    /* ── Recommendation cards ────────────────────────────────────────────── */
+    .rec-card { border:1px solid var(--border); border-radius:var(--radius-md); margin:0 12px 6px; overflow:clip; }
+    .rec-card.sev-high   { border-left:3px solid var(--red-500); }
+    .rec-card.sev-medium { border-left:3px solid var(--amber-600); }
+    .rec-card.sev-low    { border-left:3px solid var(--blue-400); }
+    .rec-card-head { padding:10px 12px; background:var(--surface); cursor:pointer; display:flex; align-items:flex-start; gap:9px; user-select:none; }
+    .rec-card-head:hover { background:var(--gray-50); }
+    .rec-sev-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+    .sev-high  .rec-sev-dot { background:var(--red-500); }
+    .sev-medium .rec-sev-dot { background:var(--amber-600); }
+    .sev-low   .rec-sev-dot { background:var(--blue-400); }
+    .rec-card-issue { font-size:12px; font-weight:600; color:var(--text-primary); flex:1; line-height:1.4; }
+    .rec-card-chevron { font-size:13px; color:var(--text-muted); margin-top:1px; transition:transform .15s; flex-shrink:0; }
+    .rec-card.collapsed .rec-card-chevron { transform:rotate(-90deg); }
+    .rec-card.collapsed .rec-card-body { display:none; }
+    .rec-card-body { border-top:1px solid var(--border); padding:10px 12px; display:grid; gap:7px; }
+    .rec-row { display:grid; grid-template-columns:62px 1fr; gap:6px; align-items:start; }
+    .rec-label { font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--text-muted); padding-top:1px; }
+    .rec-value { font-size:11px; color:var(--text-secondary); line-height:1.6; }
+    .rec-value.action  { color:var(--blue-700); font-weight:500; }
+    .rec-value.benefit { color:var(--green-700); }
+
+    /* ── Opportunities checklist ─────────────────────────────────────────── */
+    .opp-header { display:flex; align-items:center; gap:8px; padding:10px 12px 6px; }
+    .opp-header-title { font-size:12px; font-weight:700; color:var(--text-primary); flex:1; }
+    .opp-list { padding:0 12px 10px; display:flex; flex-direction:column; gap:6px; }
+    .opp-item { display:flex; align-items:flex-start; gap:9px; font-size:11px; color:var(--text-secondary); line-height:1.55; }
+    .opp-badge { width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0; margin-top:1px; }
+    .opp-p1 { background:var(--red-50);   color:var(--red-600);   border:1px solid var(--red-100); }
+    .opp-p2 { background:var(--amber-50); color:var(--amber-700); border:1px solid var(--amber-100); }
+    .opp-p3 { background:var(--blue-50);  color:var(--blue-700);  border:1px solid var(--blue-100); }
+    .opp-empty { padding:8px 12px 10px; font-size:11px; color:var(--green-700); }
+
+    /* ── Text-style group headers ────────────────────────────────────────── */
+    .ts-group-head {
+      padding:5px 12px; background:var(--gray-50); border-bottom:1px solid var(--border);
+      font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+      color:var(--text-muted); display:flex; gap:8px; align-items:center;
+    }
+    .ts-group-note { font-size:10px; font-weight:400; font-style:italic; color:var(--text-muted); margin-left:auto; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER + TABS ═══════════════════════════════════════ -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-icon">⚡</div>
+    <div>
+      <div class="header-title">Figma WordPress Optimizer <span style="opacity:.7;font-weight:500;font-size:11px;letter-spacing:.01em;">v17</span></div>
+      <div class="header-sub">Audits and prepares designs for WordPress handoff</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="audit"   aria-selected="true"  role="tab">Audit</button>
+    <button class="tab"        data-tab="spelling" aria-selected="false" role="tab">Spelling &amp; Grammar</button>
+    <button class="tab"        data-tab="typo"     aria-selected="false" role="tab">Typography &amp; Colors</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ AUDIT TAB ═══════════════════════════════════════════ -->
+<div id="tab-audit" class="tab-panel active" role="tabpanel">
+
+  <!-- ── Panel A: Empty state — no frame selected ── -->
+  <div id="auditEmpty" class="audit-empty">
+    <div class="es-scene">
+      <div class="es-card">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="6" y="6" width="28" height="28" rx="7" fill="var(--blue-100)"/>
+          <path d="M13 20h14M13 14h14M13 26h8" stroke="var(--blue-500)" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="es-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06L11.213 11.213A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z" fill="var(--blue-600)"/>
+        </svg>
+      </div>
+    </div>
+    <div class="es-title">Ready to audit your design</div>
+    <div class="es-desc">
+      Select a frame or component on the canvas to get started.
+    </div>
+    <div class="es-actions">
+      <button class="btn" id="emptyRunAudit" disabled>
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+        Run Audit
+      </button>
+    </div>
+    <div class="es-helper">Select a frame to audit.</div>
+  </div>
+
+  <!-- ── Panel B: Ready state — frame selected, audit not yet run ── -->
+  <div id="auditReady" style="display:none" class="audit-ready">
+    <div class="ar-check">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M5 13l4 4L19 7" stroke="var(--green-600)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="ar-title">Frame ready to audit</div>
+    <div class="ar-frame-name" id="arFrameName">—</div>
+    <button class="btn btn-primary ar-btn" id="readyRunAudit">
+      <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+      Run Audit
+    </button>
+  </div>
+
+  <!-- ── Panel C: Audit results (hidden until first audit runs) ── -->
+  <div id="auditResults" style="display:none">
+
+    <!-- Toolbar -->
+    <div class="toolbar" id="toolbar">
+      <button class="btn btn-primary" id="reAudit">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+        Re-Audit
+      </button>
+      <button class="btn" id="rename">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M12.854 3.146a.5.5 0 0 0-.707 0L3.5 11.793V14h2.207l8.647-8.647a.5.5 0 0 0 0-.707l-1.5-1.5zM3 13v-.5l8-8 .5.5-8 8H3z"/></svg>
+        Rename generic layers
+      </button>
+      <button class="btn" id="hidden">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709zM11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299l.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829zM3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884l-12-12 .708-.708 12 12-.708.708z"/></svg>
+        Remove hidden layers
+      </button>
+      <button class="btn" id="exports">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+        Mark exportable assets
+      </button>
+      <button class="btn" id="buttons">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/></svg>
+        Convert buttons to Auto Layout
+      </button>
+      <button class="btn" id="flatten">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M1.5 1.5A.5.5 0 0 1 2 1h4a.5.5 0 0 1 0 1H2.707L13.5 12.793V9a.5.5 0 0 1 1 0v5a.5.5 0 0 1-.5.5H9a.5.5 0 0 1 0-1h3.793L2.5 3.207V7a.5.5 0 0 1-1 0V2a.5.5 0 0 1 .5-.5z"/></svg>
+        Flatten selected vectors
+      </button>
+      <button class="btn" id="outline">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 13A5 5 0 1 1 8 3a5 5 0 0 1 0 10zm0 1A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"/></svg>
+        Outline strokes
+      </button>
+      <button class="btn" id="sections">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3A1.5 1.5 0 0 1 15 10.5v3A1.5 1.5 0 0 1 13.5 15h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
+        Make Auto Layout
+      </button>
+    </div>
+
+    <!-- Scope + progress + message -->
+    <div class="scope-row">
+      <span id="scopeBadge" class="badge badge-blue" style="display:none"></span>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-meta">
+        <span id="progressLabel">Running audit…</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div id="msgBar" class="msg-bar"></div>
+
+    <!-- Stats -->
+    <div id="statsGrid" class="stats-grid"></div>
+
+    <!-- Ignore bar -->
+    <div class="ignore-bar">
+      <span class="ignore-note" id="ignoreNote"></span>
+      <button class="btn btn-sm" id="clearIgnored">Reset ignore list</button>
+    </div>
+
+    <!-- Issues -->
+    <div class="section-row">
+      <span class="section-lbl">Issues</span>
+      <span id="totalBadge" class="badge badge-gray" style="display:none"></span>
+    </div>
+    <div id="issues" class="issue-groups"></div>
+
+  </div><!-- /auditResults -->
+</div>
+
+<!-- ═══════════════════ SPELLING & GRAMMAR TAB ══════════════════════════════ -->
+<div id="tab-spelling" class="tab-panel" role="tabpanel">
+
+  <div class="spell-intro">
+    <div class="spell-intro-title">Analyze text content</div>
+    <div class="spell-intro-desc">
+      Scans all text layers in the selection or page for spelling mistakes, grammar errors,
+      punctuation issues, and readability concerns. All analysis runs offline — no data leaves Figma.
+    </div>
+    <button class="btn btn-primary" id="spellScan">
+      <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+      Scan Text Layers
+    </button>
+  </div>
+
+  <div class="progress-wrap" id="spellProgressWrap">
+    <div class="progress-meta">
+      <span id="spellProgressLabel">Collecting text layers…</span>
+      <span id="spellProgressPct">30%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="spellProgressFill" style="width:30%"></div></div>
+  </div>
+  <div id="spellMsgBar" class="msg-bar"></div>
+
+  <!-- Readability card (hidden until first scan) -->
+  <div id="readCard" class="read-card" style="display:none">
+    <div class="read-card-title">Readability Overview</div>
+    <div class="read-top">
+      <div class="score-ring" id="scoreRing">
+        <div class="score-num" id="scoreNum">–</div>
+        <div class="score-lbl">Score</div>
+      </div>
+      <div>
+        <div class="score-grade" id="scoreGrade">–</div>
+        <div class="score-desc"  id="scoreDesc">Run a scan to see readability metrics.</div>
+      </div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-val" id="mWords">–</div><div class="metric-name">Total words</div></div>
+      <div class="metric"><div class="metric-val" id="mSentences">–</div><div class="metric-name">Sentences</div></div>
+      <div class="metric"><div class="metric-val" id="mAvg">–</div><div class="metric-name">Avg words/sent.</div></div>
+    </div>
+  </div>
+
+  <!-- Spell stats (hidden until first scan) -->
+  <div id="spellStats" class="stats-grid" style="display:none"></div>
+
+  <!-- Spell issues -->
+  <div id="spellIssues" class="issue-groups"></div>
+</div>
+
+<!-- ═══════════════════ TYPOGRAPHY & COLORS TAB ════════════════════════════ -->
+<div id="tab-typo" class="tab-panel" role="tabpanel">
+
+  <!-- Intro & scan button -->
+  <div class="typo-intro">
+    <div class="typo-intro-title">Typography &amp; Color Audit</div>
+    <div class="typo-intro-desc">
+      Scans the current page for color and text style usage. Finds unlinked fills,
+      near-duplicate colors, unused styles, and unlinked text layers. Use this to
+      clean up legacy files and prepare designs for handoff.
+    </div>
+    <button class="btn btn-primary" id="typoClarify">
+      <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+      Scan File
+    </button>
+  </div>
+
+  <div class="progress-wrap" id="typoProgressWrap" style="margin:0 12px">
+    <div class="progress-meta">
+      <span id="typoProgressLabel">Analyzing styles…</span>
+      <span id="typoProgressPct"></span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="typoProgressFill" style="width:40%"></div></div>
+  </div>
+  <div id="typoMsgBar" class="msg-bar" style="margin:0 12px 4px"></div>
+
+  <!-- Results (hidden until scan runs) -->
+  <div id="typoResults" class="typo-results" style="display:none">
+
+    <!-- Summary -->
+    <div id="typoSummaryGrid" class="stats-grid" style="padding:12px 12px 4px"></div>
+
+    <!-- Design System Opportunities -->
+    <div id="typoOpportunities"></div>
+
+    <!-- Actionable Recommendations -->
+    <div id="typoRecommendations"></div>
+
+    <!-- ── COLORS ── -->
+    <div class="typo-section-divider">
+      <svg width="12" height="12" viewBox="0 0 16 16"><circle cx="4" cy="8" r="3" fill="var(--blue-500)"/><circle cx="12" cy="8" r="3" fill="var(--violet-600)"/><circle cx="8" cy="5" r="3" fill="var(--green-600)"/></svg>
+      Colors
+      <div class="typo-section-divider-line"></div>
+    </div>
+    <div id="typoColorStyles"></div>
+    <div id="typoLocalColors"></div>
+    <div id="typoNearDupeColors"></div>
+    <div id="typoUnusedColors"></div>
+
+    <!-- ── TYPOGRAPHY ── -->
+    <div class="typo-section-divider">
+      <svg width="12" height="12" viewBox="0 0 16 16"><path d="M3 2h10v2H9v9H7V4H3V2z" fill="var(--text-secondary)"/></svg>
+      Typography
+      <div class="typo-section-divider-line"></div>
+    </div>
+    <div id="typoTextStyles"></div>
+    <div id="typoLocalText"></div>
+    <div id="typoDupText"></div>
+    <div id="typoUnusedText"></div>
+    <div id="typoScaleInfo"></div>
+    <div id="typoFonts"></div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ══════════════════════════════════════════════ -->
+<div class="footer">
+  <div class="footer-note" id="footerNote">Select a frame and run audit, or use Spelling &amp; Grammar to check text.</div>
+  <button class="btn btn-sm" id="closeBtn">Close</button>
+</div>
+
+<script>
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const AUDIT_BTNS = ['reAudit','rename','hidden','exports','buttons','flatten','outline','sections'];
+  let ignoredAuditKeys = new Set();
+  let ignoredSpellKeys = new Set();
+  let auditHasRun = false;
+  let hasSelection = false;
+
+  // ── Tab navigation ───────────────────────────────────────────────────────
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active'); tab.setAttribute('aria-selected','true');
+      $('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Audit busy state ─────────────────────────────────────────────────────
+  function setAuditBusy(busy, stage = 'Running audit…', done = 0, total = 0) {
+    AUDIT_BTNS.forEach(id => $(id).disabled = busy);
+    const wrap = $('progressWrap');
+    wrap.classList.toggle('active', busy);
+    if (busy) {
+      const pct = total ? Math.round((done / total) * 100) : 12;
+      $('progressLabel').textContent = total ? `${stage} · ${done} of ${total}` : stage;
+      $('progressFill').style.width = pct + '%';
+      $('progressPct').textContent = pct + '%';
+    }
+  }
+
+  // ── Message bar helper ───────────────────────────────────────────────────
+  function showMsg(el, text, type = 'info') {
+    if (!text) { el.className = 'msg-bar'; return; }
+    el.className = 'msg-bar visible ' + type;
+    el.textContent = text;
+  }
+  function autoType(text) {
+    if (!text) return 'info';
+    if (/error|fail/i.test(text)) return 'error';
+    if (/skip|blocked|tip:/i.test(text)) return 'warning';
+    if (/changed|renamed|removed|applied|converted|flattened|outlined|marked/i.test(text)) return 'success';
+    return 'info';
+  }
+
+  // ── Issue rendering ──────────────────────────────────────────────────────
+  const CAT_LABELS = {
+    accuracy:  'Accuracy & performance',
+    structure: 'Structure & hierarchy',
+    styles:    'Styles & variables',
+    buttons:   'Buttons & sections',
+    assets:    'Assets & vectors',
+    cleanup:   'Cleanup & separators'
+  };
+  const CAT_DOTS = {
+    accuracy:'dot-styles', structure:'dot-structure', styles:'dot-styles',
+    buttons:'dot-buttons', assets:'dot-assets', cleanup:'dot-cleanup'
+  };
+  const CAT_MAP = {
+    'generic-name':'structure','deep-nesting':'structure','background-layer':'structure',
+    'missing-text-style':'styles','missing-color-style':'styles',
+    'button-no-auto-layout':'buttons','section-no-auto-layout':'buttons','fixed-height-section':'buttons',
+    'missing-export':'assets','flatten-vectors':'assets','strokes-found':'assets',
+    'hidden-layer':'cleanup','line-object':'cleanup','mask-found':'cleanup','empty-group':'cleanup',
+    // v17
+    'text-overflow':'accuracy','auto-line-height':'accuracy','near-dupe-spacing':'accuracy',
+    'section-overlap':'accuracy','missing-font':'accuracy',
+    'no-mobile-frame':'accuracy','interactive-no-states':'accuracy',
+    'multiple-fonts':'styles'
+  };
+
+  function sevHtml(sev) {
+    const cls = sev === 'high' ? 'sev-high' : sev === 'medium' ? 'sev-medium' : 'sev-low';
+    return `<span class="sev-badge ${cls}">${sev}</span>`;
+  }
+
+  function groupBy(issues) {
+    const g = {};
+    for (const i of issues) {
+      const c = CAT_MAP[i.type] || 'structure';
+      (g[c] = g[c] || []).push(i);
+    }
+    return g;
+  }
+
+  function issueItemHtml(issue) {
+    const hasDetails = issue.details && (issue.details.why || (issue.details.steps && issue.details.steps.length));
+    const detailId = `d-${issue.nodeId}-${issue.type}`.replace(/[^a-zA-Z0-9-]/g, '_');
+    const detailHtml = hasDetails ? `
+      <div class="issue-detail" id="${detailId}">
+        ${issue.details.why ? `<div class="issue-detail-why">${escHtml(issue.details.why)}</div>` : ''}
+        ${issue.details.steps && issue.details.steps.length ? `
+          <div class="issue-detail-label">How to fix</div>
+          <ol class="issue-detail-steps">${issue.details.steps.map(s => `<li>${escHtml(s)}</li>`).join('')}</ol>` : ''}
+      </div>` : '';
+    const statusHtml = issue.actionable
+      ? '<div class="issue-status ok">✓ Actionable</div>'
+      : issue.blockedReason
+        ? `<div class="issue-status warn">⚠ Blocked: ${escHtml(issue.blockedReason)}</div>`
+        : '';
+    return `<div class="issue-item">
+      <div class="issue-top">${sevHtml(issue.severity)}<span class="issue-msg">${escHtml(issue.message)}</span></div>
+      <div class="issue-path">${escHtml(issue.path || '')}</div>
+      ${statusHtml}
+      <div class="issue-actions">
+        <button class="btn btn-sm" data-focus="${issue.nodeId}" aria-label="Focus node">Focus</button>
+        ${hasDetails ? `<button class="btn btn-sm issue-detail-toggle" data-detail="${detailId}">Why &amp; how ▾</button>` : ''}
+        <button class="btn btn-sm danger" data-ign-node="${issue.nodeId}" data-ign-type="${issue.type}" aria-label="Ignore issue">Ignore</button>
+      </div>
+      ${detailHtml}
+    </div>`;
+  }
+
+  function renderGroupedIssues(container, groups, dotMap, labelMap, onFocus, onIgnore) {
+    container.innerHTML = Object.entries(labelMap).map(([key, label]) => {
+      const items = groups[key] || [];
+      if (!items.length) return '';
+      return `<div class="issue-group" data-cat="${key}">
+        <div class="group-head">
+          <div class="group-dot ${dotMap[key] || 'dot-structure'}"></div>
+          <div class="group-name">${label}</div>
+          <span class="group-count">${items.length}</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="issue-list">${items.map(issueItemHtml).join('')}</div>
+      </div>`;
+    }).join('');
+
+    container.querySelectorAll('.group-head').forEach(h =>
+      h.addEventListener('click', () => h.closest('.issue-group').classList.toggle('collapsed')));
+
+    container.querySelectorAll('[data-focus]').forEach(b =>
+      b.addEventListener('click', () => onFocus(b.dataset.focus)));
+
+    container.querySelectorAll('[data-ign-node]').forEach(b =>
+      b.addEventListener('click', () => onIgnore(b.dataset.ignNode, b.dataset.ignType, b)));
+
+    container.querySelectorAll('.issue-detail-toggle').forEach(b =>
+      b.addEventListener('click', () => {
+        const panel = document.getElementById(b.dataset.detail);
+        if (!panel) return;
+        panel.classList.toggle('open');
+        b.textContent = panel.classList.contains('open') ? 'Why & how ▴' : 'Why & how ▾';
+      }));
+  }
+
+  // ── Render audit report ──────────────────────────────────────────────────
+  function renderReport(report, extra) {
+    setAuditBusy(false);
+    const s = report.stats || {};
+    const a = s.actionable || {};
+
+    // Scope badge
+    const badge = $('scopeBadge');
+    badge.textContent = '⊙ Scope: ' + (report.scope === 'selection' ? 'Selection' : 'Full page');
+    badge.style.display = '';
+
+    showMsg($('msgBar'), extra || '', autoType(extra || ''));
+
+    // Stats
+    const statDefs = [
+      { l:'Nodes checked',       v:s.checkedNodes },
+      { l:'Generic names',       v:s.genericNames,             sub:`${a.genericNames||0} actionable` },
+      { l:'Hidden layers',       v:s.hiddenLayers,             sub:`${a.hiddenLayers||0} actionable` },
+      { l:'Deep nesting',        v:s.deepNesting },
+      { l:'Missing text styles', v:s.missingTextStyles },
+      { l:'Missing color styles',v:s.missingColorStyles },
+      { l:'Button issues',       v:s.buttonsWithoutAutoLayout, sub:`${a.buttonsWithoutAutoLayout||0} actionable` },
+      { l:'Section layout',      v:s.sectionsWithoutAutoLayout,sub:`${a.sectionsWithoutAutoLayout||0} actionable` },
+      { l:'Missing export',      v:s.missingExportSettings,    sub:`${a.missingExportSettings||0} actionable` },
+      { l:'Vectors to flatten',  v:s.vectorsToFlatten,         sub:`${a.vectorsToFlatten||0} actionable` },
+      { l:'Masks',               v:s.masksFound },
+      { l:'Line separators',     v:s.lineObjects },
+      // v17 new stats
+      { l:'Text overflow',       v:s.textOverflow },
+      { l:'Auto line-height',    v:s.autoLineHeight },
+      { l:'Missing fonts',       v:s.missingFonts },
+      { l:'Section overlaps',    v:s.sectionOverlaps },
+      { l:'Spacing inconsistency',v:s.nearDupSpacing },
+      { l:'No mobile frame',     v:s.noMobileFrame },
+      { l:'Interactive w/o states',v:s.interactivePatterns }
+    ];
+    $('statsGrid').innerHTML = statDefs.map(({ l, v, sub }) => {
+      const cls = v == null ? 'muted' : v > 0 ? 'bad' : 'ok';
+      return `<div class="stat-card">
+        <div class="stat-val ${cls}">${v != null ? v : '–'}</div>
+        <div class="stat-lbl">${l}</div>
+        ${sub ? `<div class="stat-sub">${sub}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    // Issues
+    const filtered = (report.issues || []).filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`));
+    $('ignoreNote').textContent = ignoredAuditKeys.size
+      ? `${ignoredAuditKeys.size} issue${ignoredAuditKeys.size > 1 ? 's' : ''} ignored this session`
+      : '';
+
+    const total = (report.issues || []).length;
+    if (!filtered.length) {
+      $('totalBadge').style.display = 'none';
+      $('issues').innerHTML = `<div class="empty">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">No issues found</div>
+        <div class="empty-desc">This scope matches all SOP rules.</div>
+      </div>`;
+    } else {
+      $('totalBadge').textContent = filtered.length + ' issues';
+      $('totalBadge').className = 'badge badge-red';
+      $('totalBadge').style.display = '';
+      const grouped = groupBy(filtered);
+      renderGroupedIssues(
+        $('issues'), grouped, CAT_DOTS, CAT_LABELS,
+        nodeId => parent.postMessage({ pluginMessage: { type:'focus-node', nodeId } }, '*'),
+        (nodeId, issueType, btn) => {
+          ignoredAuditKeys.add(`${nodeId}:${issueType}`);
+          parent.postMessage({ pluginMessage: { type:'ignore-issue', nodeId, issueType } }, '*');
+        }
+      );
+    }
+
+    $('footerNote').textContent = total
+      ? `${total} total issue${total>1?'s':''} — ${filtered.length} shown${ignoredAuditKeys.size ? ` (${ignoredAuditKeys.size} hidden)` : ''}`
+      : 'No issues found. File looks clean.';
+  }
+
+  // ── Empty / ready state button wiring ───────────────────────────────────
+  $('readyRunAudit').onclick = () => {
+    auditHasRun = true;
+    $('auditReady').style.display = 'none';
+    $('auditResults').style.display = '';
+    parent.postMessage({ pluginMessage:{ type:'run-audit' } }, '*');
+  };
+
+  // ── Audit button wiring ──────────────────────────────────────────────────
+  $('reAudit').onclick  = () => parent.postMessage({ pluginMessage:{ type:'run-audit' } }, '*');
+  $('rename').onclick   = () => parent.postMessage({ pluginMessage:{ type:'rename-generic' } }, '*');
+  $('hidden').onclick  = () => parent.postMessage({ pluginMessage:{ type:'remove-hidden' } }, '*');
+  $('exports').onclick = () => parent.postMessage({ pluginMessage:{ type:'add-export-settings' } }, '*');
+  $('buttons').onclick = () => parent.postMessage({ pluginMessage:{ type:'convert-buttons' } }, '*');
+  $('flatten').onclick = () => parent.postMessage({ pluginMessage:{ type:'flatten-vectors' } }, '*');
+  $('outline').onclick = () => parent.postMessage({ pluginMessage:{ type:'outline-strokes' } }, '*');
+  $('sections').onclick= () => parent.postMessage({ pluginMessage:{ type:'section-auto-layout' } }, '*');
+  $('clearIgnored').onclick = () => {
+    ignoredAuditKeys.clear();
+    parent.postMessage({ pluginMessage:{ type:'clear-ignored' } }, '*');
+  };
+  $('closeBtn').onclick = () => parent.postMessage({ pluginMessage:{ type:'close' } }, '*');
+
+  // ── Typography & Colors tab ──────────────────────────────────────────────
+  $('typoClarify').onclick = () => {
+    $('typoClarify').disabled = true;
+    $('typoProgressWrap').classList.add('active');
+    $('typoMsgBar').className = 'msg-bar';
+    parent.postMessage({ pluginMessage: { type: 'collect-typo-colors' } }, '*');
+  };
+
+  function renderTypoBlock(id, title, count, bodyHtml, collapsed) {
+    const badgeCls = count === 0 ? 'badge badge-gray' : 'badge badge-red';
+    const el = $(id);
+    if (!el) return;
+    el.innerHTML = `<div class="typo-block${collapsed ? ' collapsed' : ''}">
+      <div class="typo-block-head">
+        <span class="typo-block-title">${title}</span>
+        <span class="${badgeCls}">${count}</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="typo-block-body">${bodyHtml}</div>
+    </div>`;
+    el.querySelectorAll('.typo-block-head').forEach(h =>
+      h.addEventListener('click', () => h.closest('.typo-block').classList.toggle('collapsed')));
+    el.querySelectorAll('[data-focus]').forEach(b =>
+      b.addEventListener('click', () => parent.postMessage({ pluginMessage: { type:'focus-node', nodeId: b.dataset.focus } }, '*')));
+  }
+
+  function wcagBadge(bg, ratio, bgLabel) {
+    if (ratio == null) return '';
+    const r = parseFloat(ratio);
+    const cls = r >= 7 ? 'wcag-aaa' : r >= 4.5 ? 'wcag-aa' : 'wcag-fail';
+    const lbl = r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : 'Fail';
+    return `<span class="wcag-badge ${cls}" title="${bgLabel} contrast ${r.toFixed(1)}:1 (WCAG ${lbl})">${bg} ${r.toFixed(1)} <strong>${lbl}</strong></span>`;
+  }
+
+  function renderColorStyleRow(s) {
+    const opacity = s.opacity < 0.99 ? ` <span class="tc-muted">/ ${Math.round(s.opacity*100)}%</span>` : '';
+    return `<tr>
+      <td style="width:28px;padding:5px 8px 5px 12px"><div class="color-swatch" style="background:${escHtml(s.hex)};opacity:${s.opacity}" title="${escHtml(s.hex)}"></div></td>
+      <td class="tc-name" title="${escHtml(s.name)}">${escHtml(s.name)}</td>
+      <td class="tc-mono">${escHtml(s.hex)}${opacity}</td>
+      <td><div class="wcag-cell">
+        ${wcagBadge('⬜', s.contrastWhite, 'On white')}
+        ${wcagBadge('⬛', s.contrastBlack, 'On black')}
+      </div></td>
+      <td>${s.usageCount>0?`<span class="badge badge-blue">${s.usageCount}×</span>`:'<span class="badge badge-gray">0×</span>'}</td>
+    </tr>`;
+  }
+
+  function colorTable(rowsHtml) {
+    return `<table class="tc-table">
+      <thead><tr>
+        <th style="width:28px"></th>
+        <th>Style Name</th>
+        <th>Hex</th>
+        <th>Accessibility (WCAG)</th>
+        <th>Uses</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+  }
+
+  function renderLocalColorRow(c) {
+    const suggest = c.count >= 3;
+    const opacity = c.opacity < 0.99 ? ` <span class="tc-muted">/ ${Math.round(c.opacity*100)}%</span>` : '';
+    return `<tr>
+      <td style="width:28px;padding:5px 8px 5px 12px"><div class="color-swatch" style="background:${escHtml(c.hex)};opacity:${c.opacity}" title="${escHtml(c.hex)}"></div></td>
+      <td class="tc-mono">${escHtml(c.hex)}${opacity}</td>
+      <td colspan="2">${suggest?'<span class="typo-suggest" style="font-size:11px">→ Consider creating a Color Style</span>':''}</td>
+      <td><span class="badge ${suggest?'badge-amber':'badge-gray'}">${c.count}×</span></td>
+    </tr>`;
+  }
+
+  function localColorTable(rowsHtml) {
+    return `<table class="tc-table">
+      <thead><tr>
+        <th style="width:28px"></th>
+        <th>Hex Value</th>
+        <th colspan="2">Suggestion</th>
+        <th>Uses</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+  }
+
+  function renderDupeColorGroup(group, groupIdx) {
+    const hexesCsv = group.map(c => c.hex).join(',');
+    const isStyled = group.find(c => c.source === 'style');
+    const defaultName = isStyled ? isStyled.label : (group[0].hex);
+    const mergeId = 'mg_' + groupIdx;
+    return `<div class="dupe-group" data-merge-id="${mergeId}">
+      <div class="dupe-swatches">
+        ${group.map(c=>`<div class="dupe-item">
+          <div class="color-swatch color-swatch-lg" style="background:${escHtml(c.hex)}" title="${escHtml(c.hex)}"></div>
+          <div class="dupe-item-hex">${escHtml(c.hex)}</div>
+          <div class="dupe-item-label" title="${escHtml(c.label)}">${escHtml(c.label)}</div>
+        </div>`).join('<div class="dupe-sep">≈</div>')}
+      </div>
+      <div class="dupe-footer">
+        <button class="merge-btn" data-hexes="${hexesCsv}" data-default="${escHtml(defaultName)}">Merge colors →</button>
+        <div class="merge-inline" style="display:none">
+          <input class="merge-name-input" value="${escHtml(defaultName)}" placeholder="New style name">
+          <button class="merge-confirm" data-hexes="${hexesCsv}" data-mergeid="${mergeId}">Confirm Merge</button>
+          <button class="merge-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderTextStyleRow(s, statusBadge) {
+    const previewSize = Math.min(Math.max(s.fontSize, 10), 16);
+    const status = statusBadge || (s.usageCount > 0
+      ? `<span class="badge badge-blue">${s.usageCount}×</span>`
+      : '<span class="badge badge-gray">Unused</span>');
+    return `<tr>
+      <td class="tc-name" title="${escHtml(s.name)}" style="max-width:130px">
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'${escHtml(s.fontFamily)}',sans-serif;font-size:${previewSize}px">${escHtml(s.name)}</div>
+      </td>
+      <td class="tc-muted" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(s.fontFamily)}</td>
+      <td class="tc-num">${s.fontSize}px</td>
+      <td class="tc-num">${escHtml(s.fontStyle)}</td>
+      <td class="tc-num">${escHtml(s.lineHeightStr)}</td>
+      <td>${status}</td>
+    </tr>`;
+  }
+
+  function textStyleTable(rowsHtml) {
+    return `<table class="tc-table">
+      <thead><tr>
+        <th>Style Name</th>
+        <th>Font Family</th>
+        <th>Size</th>
+        <th>Weight</th>
+        <th>Line-H</th>
+        <th>Uses</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+  }
+
+  function renderLocalTextRow(c) {
+    const suggest = c.count >= 3;
+    const lh = c.lineHeight ? (c.lineHeight.unit==='AUTO'?'Auto':c.lineHeight.unit==='PIXELS'?Math.round(c.lineHeight.value)+'px':Math.round(c.lineHeight.value)+'%') : 'Auto';
+    const previewSize = Math.min(Math.max(c.fontSize, 10), 16);
+    const status = suggest
+      ? `<span class="badge badge-amber">${c.count}×</span> <span class="typo-suggest" style="font-size:10px">→ Create style</span>`
+      : `<span class="badge badge-gray">${c.count}×</span>`;
+    return `<tr>
+      <td class="tc-name" style="max-width:130px">
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'${escHtml(c.fontFamily)}',sans-serif;font-size:${previewSize}px">${escHtml(c.fontFamily)}</div>
+      </td>
+      <td class="tc-muted" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.fontFamily)}</td>
+      <td class="tc-num">${c.fontSize}px</td>
+      <td class="tc-num">${escHtml(c.fontStyle)}</td>
+      <td class="tc-num">${lh}</td>
+      <td>${status}</td>
+    </tr>`;
+  }
+
+  function renderSizeBar(row, maxCount) {
+    const pct = Math.max(4, Math.round((row.count/maxCount)*100));
+    const oneOff = row.count === 1;
+    return `<div class="size-bar-row">
+      <div class="size-bar-label">${row.size}px</div>
+      <div class="size-bar-track"><div class="size-bar-fill ${oneOff?'oneoff':''}" style="width:${pct}%"></div></div>
+      <div class="size-bar-count ${oneOff?'oneoff':''}">${row.count}×${oneOff?' ⚠':''}</div>
+    </div>`;
+  }
+
+  // ── Recommendation + Opportunity renderers ──────────────────────────────
+  function renderRecommendations(recs) {
+    const el = $('typoRecommendations');
+    if (!el) return;
+    if (!recs || recs.length === 0) { el.innerHTML = ''; return; }
+    const SEV_LABEL = { high:'High Priority', medium:'Medium Priority', low:'Low Priority' };
+    el.innerHTML = `<div class="typo-block">
+      <div class="typo-block-head">
+        <span class="typo-block-title">Actionable Recommendations</span>
+        <span class="badge badge-red">${recs.length}</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="typo-block-body">
+        ${recs.map(r => `<div class="rec-card sev-${r.sev}">
+          <div class="rec-card-head">
+            <div class="rec-sev-dot"></div>
+            <div>
+              <div style="font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px">${SEV_LABEL[r.sev]||r.sev}</div>
+              <div class="rec-card-issue">${escHtml(r.issue)}</div>
+            </div>
+            <span class="rec-card-chevron">▾</span>
+          </div>
+          <div class="rec-card-body">
+            <div class="rec-row"><span class="rec-label">Impact</span><span class="rec-value">${escHtml(r.impact)}</span></div>
+            <div class="rec-row"><span class="rec-label">Action</span><span class="rec-value action">${escHtml(r.action)}</span></div>
+            <div class="rec-row"><span class="rec-label">Benefit</span><span class="rec-value benefit">${escHtml(r.benefit)}</span></div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+    el.querySelectorAll('.rec-card-head').forEach(h =>
+      h.addEventListener('click', () => h.closest('.rec-card').classList.toggle('collapsed')));
+    el.querySelectorAll('.typo-block-head').forEach(h =>
+      h.addEventListener('click', () => h.closest('.typo-block').classList.toggle('collapsed')));
+  }
+
+  function renderOpportunities(ops) {
+    const el = $('typoOpportunities');
+    if (!el) return;
+    if (!ops || ops.length === 0) {
+      el.innerHTML = `<div class="typo-block">
+        <div class="typo-block-head"><span class="typo-block-title">Design System Opportunities</span><span class="badge badge-gray">0</span><span class="chevron">▾</span></div>
+        <div class="typo-block-body"><div class="opp-empty">✓ No cleanup opportunities found. Your file is well-organized.</div></div>
+      </div>`;
+      el.querySelector('.typo-block-head').addEventListener('click', () => el.querySelector('.typo-block').classList.toggle('collapsed'));
+      return;
+    }
+    const P_LABEL = { 1:'!', 2:'2', 3:'3' };
+    const P_CLASS = { 1:'opp-p1', 2:'opp-p2', 3:'opp-p3' };
+    el.innerHTML = `<div class="typo-block">
+      <div class="typo-block-head">
+        <span class="typo-block-title">Design System Opportunities</span>
+        <span class="badge badge-amber">${ops.length}</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="typo-block-body">
+        <div class="typo-info-banner">A prioritized checklist for cleaning up and strengthening your design system. Start from the top.</div>
+        <div class="opp-list">
+          ${ops.map(o => `<div class="opp-item">
+            <div class="opp-badge ${P_CLASS[o.p]||'opp-p3'}">${P_LABEL[o.p]||o.p}</div>
+            <div>${escHtml(o.text)}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+    el.querySelector('.typo-block-head').addEventListener('click', () => el.querySelector('.typo-block').classList.toggle('collapsed'));
+  }
+
+  function renderTypoColors(data) {
+    $('typoClarify').disabled = false;
+    $('typoProgressWrap').classList.remove('active');
+    $('typoResults').style.display = '';
+    const s = data.summary;
+
+    // Summary — 6 cards
+    $('typoSummaryGrid').innerHTML = [
+      { l:'Color Styles',     v:s.totalColorStyles,      sub:`${s.unusedColorStyles} unused` },
+      { l:'Unlinked Colors',  v:s.localColorVariants,    sub:`${s.totalLocalColorUses} layers` },
+      { l:'Duplicate Colors', v:s.nearDupeColorGroups,   sub:'near-identical' },
+      { l:'Text Styles',      v:s.totalTextStyles,       sub:`${s.unusedTextStyles} unused` },
+      { l:'Unlinked Text',    v:s.localTextVariants,     sub:`${s.totalLocalTextUses} layers` },
+      { l:'Dup. Styles',      v:s.duplicateTextGroups,   sub:'identical props' },
+    ].map(({l,v,sub})=>`<div class="stat-card">
+      <div class="stat-val ${v>0?'':'ok'}">${v}</div>
+      <div class="stat-lbl">${l}</div>
+      <div class="stat-sub">${sub}</div>
+    </div>`).join('');
+
+    renderOpportunities(data.opportunities || []);
+    renderRecommendations(data.recommendations || []);
+
+    // ── Colors ──────────────────────────────────────────────────────────────
+    renderTypoBlock('typoColorStyles', 'Color Styles', data.colorStyles.length,
+      data.colorStyles.length === 0
+        ? '<div class="typo-empty">No color styles defined. Open the Styles panel → "+" to create your first style.</div>'
+        : colorTable(data.colorStyles.map(renderColorStyleRow).join('')));
+
+    const localClipped = data.localColors.slice(0, 40);
+    renderTypoBlock('typoLocalColors', 'Unlinked Colors', data.localColors.length,
+      data.localColors.length === 0
+        ? '<div class="typo-empty typo-ok">✓ All fill colors are linked to Color Styles.</div>'
+        : `<div class="typo-info-banner">Applied directly without a Color Style. <strong>Amber</strong> = used 3+ times → candidate for a new style.</div>
+           ${localColorTable(localClipped.map(renderLocalColorRow).join(''))}
+           ${data.localColors.length > 40 ? `<div class="typo-more">Showing top 40 of ${data.localColors.length} unique colors.</div>` : ''}`);
+
+    renderTypoBlock('typoNearDupeColors', 'Near-Duplicate Colors', data.nearDupeColorGroups.length,
+      data.nearDupeColorGroups.length === 0
+        ? '<div class="typo-empty typo-ok">✓ No near-duplicate colors detected.</div>'
+        : `<div class="typo-info-banner">Visually very similar colors. Use <strong>Merge colors →</strong> to consolidate each group into one Color Style.</div>
+           ${data.nearDupeColorGroups.map((g,i)=>renderDupeColorGroup(g,i)).join('')}`);
+
+    renderTypoBlock('typoUnusedColors', 'Unused Color Styles', data.unusedColorStyles.length,
+      data.unusedColorStyles.length === 0
+        ? '<div class="typo-empty typo-ok">✓ All color styles are in use on this page.</div>'
+        : `<div class="typo-info-banner">Defined but not applied on this page. Safe to remove if not needed elsewhere.</div>
+           ${colorTable(data.unusedColorStyles.map(renderColorStyleRow).join(''))}`, true);
+
+    // ── Typography ───────────────────────────────────────────────────────────
+    renderTypoBlock('typoTextStyles', 'Text Styles', data.textStyles.length,
+      data.textStyles.length === 0
+        ? '<div class="typo-empty">No text styles defined. Select a text layer → Style icon → "+" to create one.</div>'
+        : textStyleTable(data.textStyles.map(s=>renderTextStyleRow(s)).join('')));
+
+    const localTextClipped = data.localTextCombos.slice(0, 40);
+    renderTypoBlock('typoLocalText', 'Unlinked Text Layers', data.localTextCombos.length,
+      data.localTextCombos.length === 0
+        ? '<div class="typo-empty typo-ok">✓ All text layers are linked to Text Styles.</div>'
+        : `<div class="typo-info-banner">Font combinations without a Text Style. <strong>Amber</strong> = 3+ uses — create a style for these first.</div>
+           ${textStyleTable(localTextClipped.map(renderLocalTextRow).join(''))}
+           ${data.localTextCombos.length > 40 ? `<div class="typo-more">Showing top 40 of ${data.localTextCombos.length} combinations.</div>` : ''}`);
+
+    renderTypoBlock('typoDupText', 'Duplicate Text Styles', data.duplicateTextGroups.length,
+      data.duplicateTextGroups.length === 0
+        ? '<div class="typo-empty typo-ok">✓ No duplicate text styles detected.</div>'
+        : `<div class="typo-info-banner">These styles share identical font, size, and line-height. Merge into one style in Figma's Styles panel.</div>
+           ${data.duplicateTextGroups.map(g=>`<div class="typo-dup-group">${g.map(n=>`<span class="typo-style-chip">${escHtml(n)}</span>`).join('<span class="typo-dup-arrow"> ≡ </span>')}</div>`).join('')}`, true);
+
+    renderTypoBlock('typoUnusedText', 'Unused Text Styles', data.unusedTextStyles.length,
+      data.unusedTextStyles.length === 0
+        ? '<div class="typo-empty typo-ok">✓ All text styles are applied on this page.</div>'
+        : `<div class="typo-info-banner">Defined but not applied to any text layer on this page. Remove or archive.</div>
+           ${textStyleTable(data.unusedTextStyles.map(s=>renderTextStyleRow(s,'<span class="badge badge-gray">Unused</span>')).join(''))}`, true);
+
+    const maxCount = data.typeSizeInfo.length ? data.typeSizeInfo.reduce((m,r)=>Math.max(m,r.count),0) : 1;
+    renderTypoBlock('typoScaleInfo', 'Font Size Usage', data.typeSizeInfo.length,
+      data.typeSizeInfo.length === 0
+        ? '<div class="typo-empty">No text layers found on this page.</div>'
+        : `<div class="typo-info-banner typo-info-neutral">Informational only — no scale is required. Spot accidental one-off sizes (⚠) and simplify if needed.</div>
+           <div class="typo-scale-table">${data.typeSizeInfo.map(r=>renderSizeBar(r, maxCount)).join('')}</div>`, true);
+
+    renderTypoBlock('typoFonts', 'Font Families', data.fontFamilies.length,
+      data.fontFamilies.length === 0
+        ? '<div class="typo-empty">No text layers found.</div>'
+        : data.fontFamilies.map(f=>`<div class="typo-font-row">
+            <div class="typo-font-name">${escHtml(f.family)}</div>
+            <div class="typo-font-styles">${f.styles.map(st=>`<span class="typo-style-chip">${escHtml(st)}</span>`).join('')}</div>
+            <div class="typo-font-count">${f.count} layer${f.count!==1?'s':''}</div>
+          </div>`).join(''));
+
+    // ── Merge button event delegation ────────────────────────────────────────
+    const results = $('typoResults');
+    results.removeEventListener('click', results._mergeHandler||null);
+    results._mergeHandler = function(e) {
+      const mergeBtn = e.target.closest('.merge-btn');
+      const confirmBtn = e.target.closest('.merge-confirm');
+      const cancelBtn = e.target.closest('.merge-cancel');
+      if (mergeBtn && !mergeBtn.disabled) {
+        mergeBtn.style.display = 'none';
+        const inline = mergeBtn.parentElement.querySelector('.merge-inline');
+        inline.style.display = 'flex';
+        const inp = inline.querySelector('.merge-name-input');
+        inp.focus(); inp.select();
+      }
+      if (cancelBtn) {
+        const inline = cancelBtn.closest('.merge-inline');
+        inline.style.display = 'none';
+        inline.parentElement.querySelector('.merge-btn').style.display = '';
+      }
+      if (confirmBtn && !confirmBtn.disabled) {
+        const inline = confirmBtn.closest('.merge-inline');
+        const hexes = confirmBtn.dataset.hexes.split(',').map(h=>h.trim()).filter(Boolean);
+        const name = inline.querySelector('.merge-name-input').value.trim() || hexes[0];
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = '…';
+        parent.postMessage({ pluginMessage: { type:'merge-color-group', hexes, name, mergeId: confirmBtn.dataset.mergeid } }, '*');
+      }
+    };
+    results.addEventListener('click', results._mergeHandler);
+  }
+
+  // ── Sandbox → UI message handler ─────────────────────────────────────────
+  window.onmessage = event => {
+    const msg = event.data.pluginMessage;
+    if (!msg) return;
+    if (msg.type === 'merge-color-done') {
+      const group = $('typoNearDupeColors') && $('typoNearDupeColors').querySelector(`[data-merge-id="${msg.mergeId}"]`);
+      if (group) {
+        group.innerHTML = `<div style="padding:10px 12px;font-size:11px;color:var(--green-700);display:flex;align-items:center;gap:7px">
+          <svg width="14" height="14" viewBox="0 0 16 16"><path d="M13.5 3L6 11 2.5 7.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          Merged into <strong>${escHtml(msg.name)}</strong> — ${msg.updated} layer${msg.updated!==1?'s':''} updated.
+        </div>`;
+      }
+      showMsg($('typoMsgBar'), `✓ Merged into "${msg.name}" (${msg.updated} layer${msg.updated!==1?'s':''} updated). Re-scan to refresh.`, 'success');
+      return;
+    }
+    if (msg.type === 'merge-color-error') {
+      const group = $('typoNearDupeColors') && $('typoNearDupeColors').querySelector(`[data-merge-id="${msg.mergeId}"]`);
+      if (group) {
+        const confirmBtn = group.querySelector('.merge-confirm');
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Merge'; }
+      }
+      showMsg($('typoMsgBar'), 'Merge failed: ' + msg.message, 'error');
+      return;
+    }
+    if (msg.type === 'busy') { setAuditBusy(true, msg.stage || 'Running…'); return; }
+    if (msg.type === 'progress') { setAuditBusy(true, msg.stage||'Running…', msg.completed||0, msg.total||0); return; }
+    if (msg.type === 'idle')  { setAuditBusy(false); return; }
+    if (msg.type === 'selection-changed') {
+      hasSelection = msg.count > 0;
+      if (!auditHasRun) {
+        if (hasSelection) {
+          const name = msg.count === 1 ? msg.names[0] : `${msg.count} items selected`;
+          $('arFrameName').textContent = name;
+          $('auditEmpty').style.display = 'none';
+          $('auditReady').style.display = '';
+        } else {
+          $('auditReady').style.display = 'none';
+          $('auditEmpty').style.display = '';
+        }
+      }
+      return;
+    }
+    if (msg.type === 'report') {
+      if ((msg.extraMessage||'').includes('Ignored issues cleared')) ignoredAuditKeys.clear();
+      if (!msg.initial) {
+        auditHasRun = true;
+        $('auditEmpty').style.display = 'none';
+        $('auditReady').style.display = 'none';
+        $('auditResults').style.display = '';
+      }
+      renderReport(msg.report, msg.extraMessage || '');
+      return;
+    }
+    if (msg.type === 'error') {
+      setAuditBusy(false);
+      showMsg($('msgBar'), 'Error: ' + msg.message, 'error');
+      $('issues').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Error</div><div class="empty-desc">${escHtml(msg.message)}</div></div>`;
+      return;
+    }
+    if (msg.type === 'texts-collected') { analyzeTexts(msg.texts || []); return; }
+    if (msg.type === 'typo-colors-result') { renderTypoColors(msg.data); return; }
+    if (msg.type === 'typo-colors-error') {
+      $('typoProgressWrap').classList.remove('active');
+      $('typoClarify').disabled = false;
+      showMsg($('typoMsgBar'), 'Error: ' + msg.message, 'error');
+      return;
+    }
+    if (msg.type === 'typo-colors-busy') {
+      $('typoProgressWrap').classList.add('active');
+      return;
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SPELLING & GRAMMAR ENGINE
+  // ════════════════════════════════════════════════════════════════════════════
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Common misspellings dictionary ───────────────────────────────────────
+  const MISSPELL = {
+    'abreviation':'abbreviation','absense':'absence','accomodate':'accommodate',
+    'accomodation':'accommodation','acheive':'achieve','acheiving':'achieving',
+    'accross':'across','addres':'address','adress':'address','agressive':'aggressive',
+    'agression':'aggression','alot':'a lot','amature':'amateur','arguement':'argument',
+    'assasinate':'assassinate','basicaly':'basically','becuase':'because',
+    'begining':'beginning','beleive':'believe','bizzare':'bizarre','buisness':'business',
+    'calander':'calendar','catagory':'category','carefull':'careful','cemetary':'cemetery',
+    'cheif':'chief','clearence':'clearance','colum':'column','commitee':'committee',
+    'completly':'completely','concious':'conscious','congradulations':'congratulations',
+    'continous':'continuous','copywrite':'copyright','critisism':'criticism',
+    'definately':'definitely','desparate':'desperate','dilemna':'dilemma',
+    'disapoint':'disappoint','disasterous':'disastrous','discription':'description',
+    'drunkeness':'drunkenness','eariler':'earlier','eigth':'eighth','embaras':'embarrass',
+    'embarass':'embarrass','embarassment':'embarrassment','enviroment':'environment',
+    'existance':'existence','experiance':'experience','expecially':'especially',
+    'explaination':'explanation','familar':'familiar','fasinate':'fascinate',
+    'firey':'fiery','fourty':'forty','freind':'friend','goverment':'government',
+    'grammer':'grammar','gurantee':'guarantee','haras':'harass','heros':'heroes',
+    'higth':'height','hiegth':'height','humerous':'humorous','ignorence':'ignorance',
+    'imediate':'immediate','immedietly':'immediately','independant':'independent',
+    'interupt':'interrupt','irresistable':'irresistible','knowlege':'knowledge',
+    'languague':'language','liscense':'license','liason':'liaison',
+    'maintainance':'maintenance','medeval':'medieval','memerable':'memorable',
+    'millenium':'millennium','miniture':'miniature','mischevious':'mischievous',
+    'neccessary':'necessary','necesary':'necessary','negociate':'negotiate',
+    'noticable':'noticeable','occurance':'occurrence','occured':'occurred',
+    'occurence':'occurrence','ocassion':'occasion','opion':'opinion',
+    'oppertunity':'opportunity','oppurtunity':'opportunity','origonal':'original',
+    'outragous':'outrageous','paralel':'parallel','passtime':'pastime','peice':'piece',
+    'percieve':'perceive','performence':'performance','persistant':'persistent',
+    'posession':'possession','practicle':'practical','preceed':'precede',
+    'presance':'presence','privelege':'privilege','priviledge':'privilege',
+    'probly':'probably','pronounciation':'pronunciation','publically':'publicly',
+    'questionaire':'questionnaire','realy':'really','recieve':'receive',
+    'refering':'referring','relevent':'relevant','remeber':'remember',
+    'rember':'remember','restaraunt':'restaurant','rythm':'rhythm',
+    'sacrifise':'sacrifice','secratary':'secretary','seperate':'separate',
+    'similer':'similar','sincerly':'sincerely','speach':'speech',
+    'strenght':'strength','succesful':'successful','succesfully':'successfully',
+    'suprise':'surprise','suprised':'surprised','tempature':'temperature',
+    'tendancy':'tendency','therefor':'therefore','thier':'their',
+    'tommorow':'tomorrow','tommorrow':'tomorrow','tounge':'tongue',
+    'truely':'truly','tyrany':'tyranny','untill':'until','usualy':'usually',
+    'vaccum':'vacuum','visable':'visible','weired':'weird','wierd':'weird',
+    'wellfare':'welfare','writting':'writing','yeild':'yield','youself':'yourself',
+    'acheivment':'achievement','advertisment':'advertisement','airbourne':'airborne',
+    'alledge':'allege','ammend':'amend','analize':'analyze','annoint':'anoint',
+    'appologize':'apologize','archeology':'archaeology','benifit':'benefit',
+    'cancelation':'cancellation','capeable':'capable','catagorize':'categorize',
+    'chalenge':'challenge','charcter':'character','cieling':'ceiling',
+    'commited':'committed','commitement':'commitment','compitition':'competition',
+    'conceed':'concede','controll':'control','corect':'correct','corupt':'corrupt',
+    'cutomer':'customer','decieve':'deceive','definiton':'definition',
+    'desicion':'decision','disatisfied':'dissatisfied','dissapear':'disappear',
+    'dissappoint':'disappoint','efficent':'efficient','elimate':'eliminate',
+    'emergecy':'emergency','emision':'emission','employe':'employee',
+    'entrepeneur':'entrepreneur','evalute':'evaluate','excede':'exceed',
+    'excelent':'excellent','excercise':'exercise','exibit':'exhibit',
+    'expierence':'experience','faciliate':'facilitate','finaly':'finally',
+    'flexable':'flexible','formaly':'formally','frquently':'frequently',
+    'garantee':'guarantee','genious':'genius','greatful':'grateful',
+    'hapenning':'happening','happend':'happened','helpfull':'helpful',
+    'hypocrit':'hypocrite','identifiy':'identify','implemment':'implement',
+    'importent':'important','imposible':'impossible','improvment':'improvement',
+    'increese':'increase','infomation':'information','initally':'initially',
+    'intergrate':'integrate','irregardless':'regardless','jepordize':'jeopardize',
+    'keap':'keep','knowlegeable':'knowledgeable','leanred':'learned',
+    'leauge':'league','lenght':'length','libary':'library','lisense':'license',
+    'managment':'management','manuver':'maneuver','marketting':'marketing',
+    'meting':'meeting','missleading':'misleading','negotive':'negative',
+    'noticibly':'noticeably','obtian':'obtain','offical':'official',
+    'organistion':'organization','orginal':'original','orignate':'originate',
+    'overwhleming':'overwhelming','pacakge':'package','personaly':'personally',
+    'pertanent':'pertinent','poineer':'pioneer','poluted':'polluted',
+    'positon':'position','prefered':'preferred','preform':'perform',
+    'princple':'principle','probelm':'problem','programing':'programming',
+    'propse':'propose','publised':'published','purpase':'purpose',
+    'recentely':'recently','recommened':'recommend','reccomend':'recommend',
+    'recomend':'recommend','responsibilty':'responsibility','resposible':'responsible',
+    'reveiw':'review','saftey':'safety','scehdule':'schedule',
+    'sentance':'sentence','servise':'service','sholud':'should',
+    'signifcant':'significant','similiar':'similar','simplicty':'simplicity',
+    'soluton':'solution','staement':'statement','statment':'statement',
+    'stratagey':'strategy','studing':'studying','submited':'submitted',
+    'successfull':'successful','suport':'support','sytems':'systems',
+    'technolgy':'technology','therfore':'therefore','thoughful':'thoughtful',
+    'throgh':'through','transation':'transaction','udnerstand':'understand',
+    'unexpted':'unexpected','uniqe':'unique','universty':'university',
+    'unlimted':'unlimited','unneccesary':'unnecessary','usfull':'useful',
+    'utilze':'utilize','varient':'variant','veiw':'view','versoin':'version',
+    'vrey':'very','wether':'whether','whther':'whether','widley':'widely',
+    'wirte':'write','wonderfull':'wonderful','wordlwide':'worldwide',
+    'wrold':'world','zeroes':'zeros','accquire':'acquire','acomodate':'accommodate',
+    'aknowledge':'acknowledge','aprove':'approve','aproval':'approval',
+    'biggining':'beginning','challanged':'challenged','colorfull':'colorful',
+    'comunity':'community','comunication':'communication','creater':'creator',
+    'developement':'development','diferent':'different','diffrent':'different',
+    'dirrect':'direct','easyly':'easily','ensureing':'ensuring',
+    'garanteed':'guaranteed','generaly':'generally','highlited':'highlighted',
+    'honouring':'honoring','implemtation':'implementation','improvments':'improvements',
+    'incluing':'including','incorect':'incorrect','initaite':'initiate',
+    'intersting':'interesting','itegrity':'integrity','langage':'language',
+    'messsage':'message','minumum':'minimum','modifyed':'modified',
+    'necesarily':'necessarily','oficially':'officially','opporunity':'opportunity',
+    'organiize':'organize','organziation':'organization','overide':'override',
+    'planing':'planning','practise':'practice','preperation':'preparation',
+    'presistent':'persistent','prevous':'previous','priortiy':'priority',
+    'privilige':'privilege','probelms':'problems','programm':'program',
+    'reccomendation':'recommendation','resouce':'resource','resouces':'resources',
+    'responsable':'responsible','revison':'revision','rigth':'right',
+    'sccessful':'successful','scedule':'schedule','seperating':'separating',
+    'shouild':'should','singnature':'signature','soluction':'solution',
+    'somtimes':'sometimes','specifc':'specific','stucture':'structure',
+    'sucess':'success','successfuly':'successfully','sutable':'suitable',
+    'sumary':'summary','techincal':'technical','thaty':'that',
+    'totaly':'totally','trasnfer':'transfer','truley':'truly',
+    'uisng':'using','understandng':'understanding','unecessary':'unnecessary',
+    'usefull':'useful','useing':'using','vallue':'value','verfiy':'verify',
+    'woudl':'would','youre':'you\'re'
+  };
+
+  // ── Grammar rules ─────────────────────────────────────────────────────────
+  const GRAMMAR_RULES = [
+    {
+      id:'double-word', cat:'grammar', sev:'high',
+      pat: () => /\b(\w{2,})\s+\1\b/gi,
+      desc: m => `Repeated word: "${m[1]}"`,
+      sugg: m => `Remove the duplicate "${m[1]}".`
+    },
+    {
+      id:'lowercase-i', cat:'grammar', sev:'medium',
+      pat: () => /(?<![a-zA-Z])\bi\b(?![a-zA-Z'])/g,
+      desc: () => 'Pronoun "I" should be capitalized.',
+      sugg: () => 'Change "i" to "I".'
+    },
+    {
+      id:'no-space-after-punct', cat:'punctuation', sev:'medium',
+      pat: () => /[.!?][A-Z]/g,
+      desc: () => 'Missing space after sentence-ending punctuation.',
+      sugg: () => 'Add a space between the punctuation mark and the next sentence.'
+    },
+    {
+      id:'space-before-punct', cat:'punctuation', sev:'low',
+      pat: () => / [,.;:!?]/g,
+      desc: m => `Space before "${m[0].trim()}".`,
+      sugg: () => 'Remove the space before the punctuation mark.'
+    },
+    {
+      id:'comma-no-space', cat:'punctuation', sev:'medium',
+      pat: () => /,[^ \n"')\]…]/g,
+      desc: () => 'Missing space after comma.',
+      sugg: () => 'Add a space after the comma.'
+    },
+    {
+      id:'double-punct', cat:'punctuation', sev:'low',
+      pat: () => /[!?]{2,}/g,
+      desc: m => `Multiple punctuation marks: "${m[0]}".`,
+      sugg: () => 'Use a single punctuation mark for clarity.'
+    },
+    {
+      id:'short-ellipsis', cat:'punctuation', sev:'low',
+      pat: () => /\.\.(?!\.)/g,
+      desc: () => 'Incomplete ellipsis (only 2 dots).',
+      sugg: () => 'Use three dots (…) or the proper ellipsis character.'
+    },
+    {
+      id:'double-space', cat:'punctuation', sev:'low',
+      pat: () => /  +/g,
+      desc: () => 'Multiple consecutive spaces.',
+      sugg: () => 'Replace with a single space.'
+    },
+    {
+      id:'all-caps', cat:'readability', sev:'low',
+      pat: () => /\b[A-Z]{5,}\b/g,
+      desc: m => `All-caps text: "${m[0]}".`,
+      sugg: () => 'Avoid all-caps for readability — use bold or color emphasis instead.'
+    }
+  ];
+
+  // ── Spell-check a single text ─────────────────────────────────────────────
+  function checkSpelling(text) {
+    const issues = [];
+    const re = /\b([a-zA-Z']{3,})\b/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const lower = m[1].toLowerCase().replace(/^'+|'+$/g,'');
+      if (MISSPELL[lower]) {
+        issues.push({ cat:'spelling', sev:'high', word:m[1], index:m.index,
+          desc:`Misspelled: "${m[1]}"`, sugg:`Did you mean "${MISSPELL[lower]}"?` });
+      }
+    }
+    return issues;
+  }
+
+  function checkGrammarAndPunct(text) {
+    const issues = [];
+    for (const rule of GRAMMAR_RULES) {
+      const re = rule.pat();
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        issues.push({ cat:rule.cat, sev:rule.sev, word:m[0], index:m.index,
+          desc:rule.desc(m), sugg:rule.sugg(m) });
+        if (re.lastIndex === m.index) re.lastIndex++;
+      }
+    }
+    return issues;
+  }
+
+  // ── Readability (Flesch Reading Ease) ─────────────────────────────────────
+  function syllables(word) {
+    word = word.toLowerCase().replace(/[^a-z]/g,'');
+    if (word.length <= 3) return 1;
+    word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/,'');
+    const m = word.match(/[aeiouy]{1,2}/g);
+    return m ? m.length : 1;
+  }
+
+  function readability(texts) {
+    let words = 0, sents = 0, sylls = 0;
+    for (const { text } of texts) {
+      if (!text || text.length < 5) continue;
+      const ss = text.split(/[.!?]+/).filter(s => s.trim().length > 2);
+      sents += ss.length;
+      for (const s of ss) {
+        const ws = s.trim().split(/\s+/).filter(Boolean);
+        words += ws.length;
+        for (const w of ws) sylls += syllables(w);
+      }
+    }
+    if (!words || !sents) return { score:0, grade:'N/A', desc:'Not enough text.', cls:'good', words:0, sents:0, avg:0 };
+    const raw = 206.835 - 1.015*(words/sents) - 84.6*(sylls/words);
+    const score = Math.min(100, Math.max(0, Math.round(raw)));
+    let grade, desc, cls;
+    if (score >= 80)      { grade='Very Easy';        desc='Plain conversational English.';           cls='excellent'; }
+    else if (score >= 65) { grade='Easy';              desc='Accessible to most readers.';             cls='good'; }
+    else if (score >= 50) { grade='Fairly Easy';       desc='Comfortable for general audiences.';      cls='good'; }
+    else if (score >= 35) { grade='Fairly Difficult';  desc='Better suited for educated readers.';     cls='fair'; }
+    else                  { grade='Difficult';         desc='Best understood by university graduates.'; cls='poor'; }
+    return { score, grade, desc, cls, words, sents, avg: Math.round((words/sents)*10)/10 };
+  }
+
+  // ── Context snippet with highlight ───────────────────────────────────────
+  function ctxSnippet(text, index, word) {
+    const s = Math.max(0, index - 28);
+    const e = Math.min(text.length, index + word.length + 28);
+    const before = escHtml(text.slice(s, index));
+    const target = escHtml(text.slice(index, index + word.length));
+    const after  = escHtml(text.slice(index + word.length, e));
+    return `${s>0?'…':''}${before}<mark class="hl">${target}</mark>${after}${e<text.length?'…':''}`;
+  }
+
+  // ── Main analysis ─────────────────────────────────────────────────────────
+  function analyzeTexts(texts) {
+    $('spellScan').disabled = false;
+    $('spellProgressWrap').classList.remove('active');
+
+    if (!texts.length) {
+      showMsg($('spellMsgBar'), 'No text layers found in the current scope.', 'warning');
+      return;
+    }
+
+    const byCategory = { spelling:[], grammar:[], punctuation:[], readability:[] };
+
+    texts.forEach(({ id, text, path }) => {
+      if (!text || text.length < 2) return;
+
+      checkSpelling(text).forEach(p =>
+        byCategory.spelling.push({ ...p, nodeId:id, path, ctx:ctxSnippet(text,p.index,p.word) }));
+
+      checkGrammarAndPunct(text).forEach(p =>
+        byCategory[p.cat === 'grammar' ? 'grammar' : p.cat === 'readability' ? 'readability' : 'punctuation']
+          .push({ ...p, nodeId:id, path, ctx:ctxSnippet(text,p.index,p.word) }));
+
+      // Long sentence detection
+      const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 2);
+      if (sentences.some(s => s.trim().split(/\s+/).length > 30)) {
+        byCategory.readability.push({
+          cat:'readability', sev:'medium', nodeId:id, path,
+          desc:'Very long sentence (30+ words detected).',
+          sugg:'Break this into shorter, clearer statements for better readability.',
+          ctx: escHtml(text.length > 90 ? text.slice(0,90)+'…' : text), word:''
+        });
+      }
+    });
+
+    // Readability card
+    const read = readability(texts);
+    $('readCard').style.display = 'block';
+    $('scoreNum').textContent = read.score || '–';
+    $('scoreGrade').textContent = read.grade;
+    $('scoreDesc').textContent = read.desc;
+    $('scoreRing').className = 'score-ring ' + read.cls;
+    $('mWords').textContent = read.words || '–';
+    $('mSentences').textContent = read.sents || '–';
+    $('mAvg').textContent = read.avg || '–';
+
+    const total = Object.values(byCategory).reduce((n,a) => n+a.length, 0);
+
+    // Stats
+    $('spellStats').style.display = 'grid';
+    $('spellStats').innerHTML = [
+      { l:'Text layers',   v:texts.length,                cls:'' },
+      { l:'Spelling',      v:byCategory.spelling.length,  cls:byCategory.spelling.length   ? 'bad':'ok' },
+      { l:'Grammar',       v:byCategory.grammar.length,   cls:byCategory.grammar.length    ? 'bad':'ok' },
+      { l:'Punctuation',   v:byCategory.punctuation.length,cls:byCategory.punctuation.length? 'bad':'ok' }
+    ].map(({ l, v, cls }) =>
+      `<div class="stat-card"><div class="stat-val ${cls}">${v}</div><div class="stat-lbl">${l}</div></div>`
+    ).join('');
+
+    if (!total) {
+      showMsg($('spellMsgBar'), `Scanned ${texts.length} text layer${texts.length>1?'s':''} — no issues found.`, 'success');
+      $('spellIssues').innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">All clear</div><div class="empty-desc">No spelling, grammar, or punctuation issues found.</div></div>`;
+      return;
+    }
+
+    showMsg($('spellMsgBar'),
+      `Scanned ${texts.length} text layer${texts.length>1?'s':''} — ${total} issue${total>1?'s':''} found.`,
+      'warning');
+
+    const SPELL_GROUPS = [
+      { key:'spelling',    label:'Spelling',    dot:'dot-spelling' },
+      { key:'grammar',     label:'Grammar',     dot:'dot-grammar' },
+      { key:'punctuation', label:'Punctuation', dot:'dot-punct' },
+      { key:'readability', label:'Readability', dot:'dot-readability' }
+    ];
+
+    $('spellIssues').innerHTML = SPELL_GROUPS.map(({ key, label, dot }) => {
+      const items = byCategory[key] || [];
+      if (!items.length) return '';
+      const rows = items.map((issue, i) => {
+        const sid = `${key}-${issue.nodeId}-${i}`;
+        if (ignoredSpellKeys.has(sid)) return '';
+        return `<div class="spell-item" data-sid="${sid}">
+          <div class="spell-ctx">${issue.ctx || escHtml(issue.word)}</div>
+          <div class="spell-suggest"><strong>Suggestion:</strong> ${escHtml(issue.sugg)}</div>
+          <div class="spell-path">${escHtml(issue.path || '')}</div>
+          <div class="issue-actions">
+            ${issue.nodeId ? `<button class="btn btn-sm" data-focus="${escHtml(issue.nodeId)}">Focus layer</button>` : ''}
+            <button class="btn btn-sm danger" data-spell-sid="${escHtml(sid)}">Ignore</button>
+          </div>
+        </div>`;
+      }).filter(Boolean).join('');
+      if (!rows) return '';
+      return `<div class="issue-group" data-cat="${key}">
+        <div class="group-head">
+          <div class="group-dot ${dot}"></div>
+          <div class="group-name">${label}</div>
+          <span class="group-count">${items.length}</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="issue-list">${rows}</div>
+      </div>`;
+    }).join('');
+
+    // Wire up spell group toggles
+    $('spellIssues').querySelectorAll('.group-head').forEach(h =>
+      h.addEventListener('click', () => h.closest('.issue-group').classList.toggle('collapsed')));
+
+    // Wire up focus
+    $('spellIssues').querySelectorAll('[data-focus]').forEach(b =>
+      b.addEventListener('click', () =>
+        parent.postMessage({ pluginMessage:{ type:'focus-node', nodeId:b.dataset.focus } }, '*')));
+
+    // Wire up ignore
+    $('spellIssues').querySelectorAll('[data-spell-sid]').forEach(b =>
+      b.addEventListener('click', () => {
+        const sid = b.dataset.spellSid;
+        ignoredSpellKeys.add(sid);
+        const item = $('spellIssues').querySelector(`[data-sid="${sid}"]`);
+        if (item) item.remove();
+      }));
+  }
+
+  // ── Spell scan button ─────────────────────────────────────────────────────
+  $('spellScan').onclick = () => {
+    $('spellScan').disabled = true;
+    $('spellProgressWrap').classList.add('active');
+    $('spellProgressLabel').textContent = 'Collecting text layers…';
+    $('spellProgressFill').style.width = '30%';
+    $('spellProgressPct').textContent = '30%';
+    showMsg($('spellMsgBar'), '', 'info');
+    parent.postMessage({ pluginMessage:{ type:'collect-texts' } }, '*');
+  };
+</script>
+</body>
+</html>
