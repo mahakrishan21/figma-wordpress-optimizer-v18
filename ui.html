@@ -15,10 +15,10 @@
       --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
       --gray-800: #1f2937; --gray-900: #111827;
       /* Semantic */
-      --green-50: #f0fdf4; --green-100: #dcfce7; --green-600: #16a34a; --green-700: #15803d;
-      --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-600: #d97706; --amber-700: #b45309;
-      --red-50: #fef2f2;  --red-100: #fee2e2;  --red-600: #dc2626;  --red-700: #b91c1c;
-      --violet-50: #f5f3ff; --violet-100: #ede9fe; --violet-600: #7c3aed; --violet-700: #6d28d9;
+      --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0; --green-600: #16a34a; --green-700: #15803d;
+      --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-200: #fde68a; --amber-600: #d97706; --amber-700: #b45309;
+      --red-50: #fef2f2;  --red-100: #fee2e2;  --red-200: #fecaca;  --red-600: #dc2626;  --red-700: #b91c1c;
+      --violet-50: #f5f3ff; --violet-100: #ede9fe; --violet-200: #ddd6fe; --violet-600: #7c3aed; --violet-700: #6d28d9;
       /* Surfaces */
       --surface: #ffffff; --surface-raised: #f9fafb;
       --border: #e5e7eb; --border-strong: #d1d5db;
@@ -26,6 +26,26 @@
       --radius-sm: 5px; --radius-md: 8px; --radius-lg: 10px; --radius-xl: 14px; --radius-full: 9999px;
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / .05);
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / .07), 0 2px 4px -2px rgb(0 0 0 / .05);
+
+      /* Category accent colors — shared across stat numbers, accordion dots & counts */
+      --cat-accuracy:  var(--red-600);
+      --cat-structure: var(--blue-600);
+      --cat-styles:    var(--violet-600);
+      --cat-buttons:   var(--amber-600);
+      --cat-assets:    var(--green-600);
+      --cat-cleanup:   var(--gray-500);
+      --cat-accuracy-bg:   var(--red-50);
+      --cat-structure-bg:  var(--blue-50);
+      --cat-styles-bg:     var(--violet-50);
+      --cat-buttons-bg:    var(--amber-50);
+      --cat-assets-bg:     var(--green-50);
+      --cat-cleanup-bg:    var(--gray-100);
+      --cat-accuracy-border:  var(--red-200);
+      --cat-structure-border: var(--blue-200);
+      --cat-styles-border:    var(--violet-200);
+      --cat-buttons-border:   var(--amber-200);
+      --cat-assets-border:    var(--green-200);
+      --cat-cleanup-border:   var(--gray-200);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -49,7 +69,8 @@
 
     /* ── Header ────────────────────────────────────────────────────────────── */
     .header {
-      background: var(--blue-600);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
       padding: 12px 16px 0;
     }
     .header-top {
@@ -57,24 +78,24 @@
     }
     .header-icon {
       width: 30px; height: 30px; flex-shrink: 0;
-      background: rgba(255,255,255,.18); border-radius: var(--radius-md);
-      display: flex; align-items: center; justify-content: center; font-size: 15px;
+      background: var(--blue-100); border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
     }
-    .header-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
-    .header-sub   { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 1px; }
+    .header-title { font-size: 13px; font-weight: 700; color: var(--text-primary); letter-spacing: -.01em; }
+    .header-sub   { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
 
     /* ── Tabs ──────────────────────────────────────────────────────────────── */
     .tabs { display: flex; gap: 0; }
     .tab {
       padding: 8px 16px; font-size: 12px; font-weight: 500;
-      color: rgba(255,255,255,.65); cursor: pointer;
+      color: var(--text-muted); cursor: pointer;
       border: none; background: none;
       border-bottom: 2px solid transparent;
       transition: color .15s, border-color .15s;
     }
-    .tab:hover  { color: rgba(255,255,255,.9); }
-    .tab.active { color: #fff; border-bottom-color: #fff; }
-    .tab:focus-visible { outline: 2px solid rgba(255,255,255,.5); outline-offset: -2px; }
+    .tab:hover  { color: var(--text-primary); }
+    .tab.active { color: var(--blue-600); border-bottom-color: var(--blue-600); }
+    .tab:focus-visible { outline: 2px solid var(--blue-500); outline-offset: -2px; }
 
     /* ── Tab panels ────────────────────────────────────────────────────────── */
     .tab-panel { display: none; padding: 14px 16px; }
@@ -97,6 +118,7 @@
 
     .btn-primary {
       background: var(--blue-600); border-color: var(--blue-600); color: #fff;
+      box-shadow: 0 4px 14px rgba(37,99,235,.38), 0 1px 4px rgba(37,99,235,.18);
     }
     .btn-primary:hover:not(:disabled) {
       background: var(--blue-700); border-color: var(--blue-700); color: #fff;
@@ -111,11 +133,38 @@
     }
 
     /* ── Toolbar ───────────────────────────────────────────────────────────── */
-    .toolbar {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px;
+    .toolbar-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
     }
-    .toolbar .btn-primary { grid-column: 1 / -1; }
+    .toolbar {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    }
+    .toolbar .btn-primary {
+      
+      box-shadow: 0 4px 14px rgba(37,99,235,.38), 0 1px 4px rgba(37,99,235,.18);
+    }
+    .toolbar-label {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text-muted);
+      padding: 6px 0 2px; margin-top: 2px;
+    }
+    .toolbar-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
     .btn-icon { width: 16px; height: 16px; flex-shrink: 0; fill: currentColor; }
+
+    /* ── Summary row ───────────────────────────────────────────────────────── */
+    .summary-row {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .summary-row .btn-sm { margin-left: auto; }
 
     /* ── Scope badge ───────────────────────────────────────────────────────── */
     .scope-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; min-height: 22px; }
@@ -165,12 +214,20 @@
     }
     .stat-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 8px 10px; text-align: center;
+      border-radius: var(--radius-lg); padding: 10px 12px; text-align: center;
     }
+    #statsGrid { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    #statsGrid .stat-card { text-align: left; }
     .stat-val  { font-size: 18px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
-    .stat-val.ok  { color: var(--green-600); }
-    .stat-val.bad { color: var(--red-600); }
+    .stat-val.ok    { color: var(--green-600); }
+    .stat-val.bad   { color: var(--red-600); }
     .stat-val.muted { color: var(--text-muted); }
+    .stat-val.cat-accuracy  { color: var(--cat-accuracy); }
+    .stat-val.cat-structure { color: var(--cat-structure); }
+    .stat-val.cat-styles    { color: var(--cat-styles); }
+    .stat-val.cat-buttons   { color: var(--cat-buttons); }
+    .stat-val.cat-assets    { color: var(--cat-assets); }
+    .stat-val.cat-cleanup   { color: var(--cat-cleanup); }
     .stat-lbl  { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
     .stat-sub  { font-size: 10px; color: var(--blue-600); margin-top: 2px; }
 
@@ -191,7 +248,7 @@
 
     /* ── Issue groups ──────────────────────────────────────────────────────── */
     .issue-groups {
-      display: flex; flex-direction: column; gap: 6px;
+      display: flex; flex-direction: column; gap: 8px;
       max-height: 400px; overflow-y: auto;
       padding-right: 2px; padding-bottom: 2px;
     }
@@ -203,24 +260,12 @@
        so position:sticky on .group-head correctly references .issue-groups. */
     .issue-group {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); overflow: clip; flex-shrink: 0;
+      border-radius: var(--radius-xl); overflow: clip; flex-shrink: 0;
     }
-
-    /* Per-category left accent — 3px replaces the 1px left side of the outer border */
-    .issue-group[data-cat="accuracy"]    { border-left: 3px solid var(--red-500); }
-    .issue-group[data-cat="structure"]  { border-left: 3px solid var(--blue-500); }
-    .issue-group[data-cat="styles"]     { border-left: 3px solid var(--violet-600); }
-    .issue-group[data-cat="buttons"]    { border-left: 3px solid var(--amber-600); }
-    .issue-group[data-cat="assets"]     { border-left: 3px solid var(--green-600); }
-    .issue-group[data-cat="cleanup"]    { border-left: 3px solid var(--gray-400); }
-    .issue-group[data-cat="spelling"]    { border-left: 3px solid var(--red-600); }
-    .issue-group[data-cat="grammar"]     { border-left: 3px solid var(--amber-600); }
-    .issue-group[data-cat="punctuation"] { border-left: 3px solid var(--blue-500); }
-    .issue-group[data-cat="readability"] { border-left: 3px solid var(--green-600); }
 
     /* Sticky header — sticks at top of the .issue-groups scroll container */
     .group-head {
-      display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px;
       cursor: pointer; user-select: none;
       position: sticky; top: 0; z-index: 2;
       background: var(--surface);
@@ -231,12 +276,13 @@
     .issue-group:not(.collapsed) .group-head { border-bottom-color: var(--border); }
     .group-head:hover { background: var(--gray-50); }
 
-    .group-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
-    .dot-structure   { background: var(--blue-500); }
-    .dot-styles      { background: var(--violet-600); }
-    .dot-buttons     { background: var(--amber-600); }
-    .dot-assets      { background: var(--green-600); }
-    .dot-cleanup     { background: var(--gray-400); }
+    .group-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-accuracy    { background: var(--cat-accuracy); }
+    .dot-structure   { background: var(--cat-structure); }
+    .dot-styles      { background: var(--cat-styles); }
+    .dot-buttons     { background: var(--cat-buttons); }
+    .dot-assets      { background: var(--cat-assets); }
+    .dot-cleanup     { background: var(--cat-cleanup); }
     .dot-spelling    { background: var(--red-600); }
     .dot-grammar     { background: var(--amber-600); }
     .dot-punct       { background: var(--blue-500); }
@@ -244,7 +290,6 @@
 
     .group-name { font-size: 13px; font-weight: 700; flex: 1; color: var(--text-primary); }
 
-    /* Blue badge — clearly readable against the white header background */
     .group-count {
       background: var(--blue-50); color: var(--blue-700);
       border: 1px solid var(--blue-200);
@@ -252,6 +297,22 @@
       padding: 2px 8px; border-radius: var(--radius-full);
       min-width: 28px; text-align: center;
     }
+    .group-count.cat-accuracy  { background: var(--cat-accuracy-bg);  color: var(--cat-accuracy);  border-color: var(--cat-accuracy-border); }
+    .group-count.cat-structure { background: var(--cat-structure-bg); color: var(--cat-structure); border-color: var(--cat-structure-border); }
+    .group-count.cat-styles    { background: var(--cat-styles-bg);    color: var(--cat-styles);    border-color: var(--cat-styles-border); }
+    .group-count.cat-buttons   { background: var(--cat-buttons-bg);   color: var(--cat-buttons);   border-color: var(--cat-buttons-border); }
+    .group-count.cat-assets    { background: var(--cat-assets-bg);    color: var(--cat-assets);    border-color: var(--cat-assets-border); }
+    .group-count.cat-cleanup   { background: var(--cat-cleanup-bg);   color: var(--cat-cleanup);   border-color: var(--cat-cleanup-border); }
+
+    .ignore-all-btn {
+      font-size: 10px; font-weight: 500; padding: 2px 8px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-muted); cursor: pointer;
+      margin-left: 4px; white-space: nowrap;
+      transition: background .12s, color .12s, border-color .12s;
+      line-height: 1.5;
+    }
+    .ignore-all-btn:hover { color: var(--red-700) !important; background: var(--red-50) !important; border-color: var(--red-100) !important; }
 
     /* Chevron: bigger, bolder, animated rotate */
     .chevron {
@@ -412,7 +473,7 @@
     }
     .es-desc {
       font-size: 12px; color: var(--text-secondary); line-height: 1.65;
-      max-width: 296px; margin-bottom: 6px;
+      max-width: 400px; margin-bottom: 6px;
     }
 
     /* Selection hint pill — updates live as selection changes */
@@ -464,7 +525,7 @@
       max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       margin-bottom: 8px;
     }
-    .ar-btn { min-width: 140px; }
+    .ar-btn {/* min-width: 140px;*/ }
 
     /* ── Typography & Colors tab ─────────────────────────────────────────── */
     #tab-typo { padding: 0; }
@@ -684,9 +745,13 @@
 <!-- ═══════════════════ HEADER + TABS ═══════════════════════════════════════ -->
 <div class="header">
   <div class="header-top">
-    <div class="header-icon">⚡</div>
+    <div class="header-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M5 4L2 8l3 4M11 4l3 4-3 4M9.5 2.5l-3 11" stroke="var(--blue-600)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
     <div>
-      <div class="header-title">Figma WordPress Optimizer <span style="opacity:.7;font-weight:500;font-size:11px;letter-spacing:.01em;">v17</span></div>
+      <div class="header-title">Figma WordPress Optimizer</div>
       <div class="header-sub">Audits and prepares designs for WordPress handoff</div>
     </div>
   </div>
@@ -747,30 +812,32 @@
   <div id="auditResults" style="display:none">
 
     <!-- Toolbar -->
+    <div class="toolbar-card">
     <div class="toolbar" id="toolbar">
       <button class="btn btn-primary" id="reAudit">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
-        Re-Audit
+        Run Audit
       </button>
+      <div class="toolbar-label">Automated Fixes</div>
       <button class="btn" id="rename">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M12.854 3.146a.5.5 0 0 0-.707 0L3.5 11.793V14h2.207l8.647-8.647a.5.5 0 0 0 0-.707l-1.5-1.5zM3 13v-.5l8-8 .5.5-8 8H3z"/></svg>
-        Rename generic layers
+        Rename generic
       </button>
       <button class="btn" id="hidden">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709zM11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299l.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829zM3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884l-12-12 .708-.708 12 12-.708.708z"/></svg>
-        Remove hidden layers
+        Remove hidden
       </button>
       <button class="btn" id="exports">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
-        Mark exportable assets
+        Mark exports
       </button>
       <button class="btn" id="buttons">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/></svg>
-        Convert buttons to Auto Layout
+        Buttons → Auto
       </button>
       <button class="btn" id="flatten">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M1.5 1.5A.5.5 0 0 1 2 1h4a.5.5 0 0 1 0 1H2.707L13.5 12.793V9a.5.5 0 0 1 1 0v5a.5.5 0 0 1-.5.5H9a.5.5 0 0 1 0-1h3.793L2.5 3.207V7a.5.5 0 0 1-1 0V2a.5.5 0 0 1 .5-.5z"/></svg>
-        Flatten selected vectors
+        Flatten vectors
       </button>
       <button class="btn" id="outline">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 13A5 5 0 1 1 8 3a5 5 0 0 1 0 10zm0 1A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"/></svg>
@@ -780,7 +847,12 @@
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3A1.5 1.5 0 0 1 15 10.5v3A1.5 1.5 0 0 1 13.5 15h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>
         Make Auto Layout
       </button>
+      <button class="btn" id="rescan2">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>
+        Re-scan
+      </button>
     </div>
+    </div><!-- /toolbar-card -->
 
     <!-- Scope + progress + message -->
     <div class="scope-row">
@@ -798,16 +870,13 @@
     <!-- Stats -->
     <div id="statsGrid" class="stats-grid"></div>
 
-    <!-- Ignore bar -->
-    <div class="ignore-bar">
-      <span class="ignore-note" id="ignoreNote"></span>
+    <!-- Summary row -->
+    <div class="summary-row">
+      <span id="totalBadge" class="badge badge-gray">0 total issues</span>
+      <span id="actionableBadge" class="badge badge-gray">0 actionable</span>
+      <span id="shownBadge" class="badge badge-gray">0 shown</span>
+      <span class="ignore-note" id="ignoreNote" style="display:none"></span>
       <button class="btn btn-sm" id="clearIgnored">Reset ignore list</button>
-    </div>
-
-    <!-- Issues -->
-    <div class="section-row">
-      <span class="section-lbl">Issues</span>
-      <span id="totalBadge" class="badge badge-gray" style="display:none"></span>
     </div>
     <div id="issues" class="issue-groups"></div>
 
@@ -939,11 +1008,12 @@
 <script>
   // ── Helpers ──────────────────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
-  const AUDIT_BTNS = ['reAudit','rename','hidden','exports','buttons','flatten','outline','sections'];
+  const AUDIT_BTNS = ['reAudit','rename','hidden','exports','buttons','flatten','outline','sections','rescan2'];
   let ignoredAuditKeys = new Set();
   let ignoredSpellKeys = new Set();
   let auditHasRun = false;
   let hasSelection = false;
+  let lastIssues = [];
 
   // ── Tab navigation ───────────────────────────────────────────────────────
   document.querySelectorAll('.tab').forEach(tab => {
@@ -992,7 +1062,7 @@
     cleanup:   'Cleanup & separators'
   };
   const CAT_DOTS = {
-    accuracy:'dot-styles', structure:'dot-structure', styles:'dot-styles',
+    accuracy:'dot-accuracy', structure:'dot-structure', styles:'dot-styles',
     buttons:'dot-buttons', assets:'dot-assets', cleanup:'dot-cleanup'
   };
   const CAT_MAP = {
@@ -1050,7 +1120,65 @@
     </div>`;
   }
 
-  function renderGroupedIssues(container, groups, dotMap, labelMap, onFocus, onIgnore) {
+  function updateSummaryBadges() {
+    const total = lastIssues.length;
+    const shown = lastIssues.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`)).length;
+    const actionable = lastIssues.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`) && i.actionable).length;
+    const tb = $('totalBadge'), ab = $('actionableBadge'), sb = $('shownBadge');
+    if (tb) { tb.textContent = total + ' total issue' + (total !== 1 ? 's' : ''); tb.className = 'badge ' + (total > 0 ? 'badge-red' : 'badge-gray'); }
+    if (ab) { ab.textContent = actionable + ' actionable'; ab.className = 'badge ' + (actionable > 0 ? 'badge-red' : 'badge-gray'); }
+    if (sb) { sb.textContent = shown + ' shown'; sb.className = 'badge badge-gray'; }
+    const ign = $('ignoreNote');
+    if (ign) { ign.textContent = ignoredAuditKeys.size ? `${ignoredAuditKeys.size} ignored` : ''; ign.style.display = ignoredAuditKeys.size ? '' : 'none'; }
+    $('footerNote').textContent = total
+      ? `${total} total issue${total > 1 ? 's' : ''} — ${shown} shown${ignoredAuditKeys.size ? ` (${ignoredAuditKeys.size} hidden)` : ''}`
+      : 'No issues found. File looks clean.';
+  }
+
+  function removeSingleIssue(nodeId, issueType) {
+    const key = `${nodeId}:${issueType}`;
+    if (ignoredAuditKeys.has(key)) return;
+    ignoredAuditKeys.add(key);
+    let itemEl = null;
+    $('issues').querySelectorAll('[data-ign-node]').forEach(b => {
+      if (!itemEl && b.dataset.ignNode === nodeId && b.dataset.ignType === issueType) {
+        itemEl = b.closest('.issue-item');
+      }
+    });
+    if (itemEl) {
+      const group = itemEl.closest('.issue-group');
+      itemEl.remove();
+      if (group) {
+        const remaining = group.querySelectorAll('.issue-item').length;
+        const countBadge = group.querySelector('.group-count');
+        if (countBadge) countBadge.textContent = remaining;
+        if (remaining === 0) group.remove();
+      }
+    }
+    updateSummaryBadges();
+    parent.postMessage({ pluginMessage: { type: 'ignore-issue', nodeId, issueType } }, '*');
+  }
+
+  function removeCategoryIssues(catKey) {
+    const group = $('issues').querySelector(`.issue-group[data-cat="${catKey}"]`);
+    if (!group) return;
+    const pairs = [];
+    group.querySelectorAll('[data-ign-node]').forEach(b => {
+      const nid = b.dataset.ignNode, itype = b.dataset.ignType;
+      const key = `${nid}:${itype}`;
+      if (!ignoredAuditKeys.has(key)) {
+        ignoredAuditKeys.add(key);
+        pairs.push({ nodeId: nid, issueType: itype });
+      }
+    });
+    group.remove();
+    updateSummaryBadges();
+    if (pairs.length > 0) {
+      parent.postMessage({ pluginMessage: { type: 'ignore-issues-bulk', pairs } }, '*');
+    }
+  }
+
+  function renderGroupedIssues(container, groups, dotMap, labelMap, onFocus, onIgnore, onIgnoreAll) {
     container.innerHTML = Object.entries(labelMap).map(([key, label]) => {
       const items = groups[key] || [];
       if (!items.length) return '';
@@ -1058,7 +1186,8 @@
         <div class="group-head">
           <div class="group-dot ${dotMap[key] || 'dot-structure'}"></div>
           <div class="group-name">${label}</div>
-          <span class="group-count">${items.length}</span>
+          <span class="group-count cat-${key}">${items.length}</span>
+          <button class="ignore-all-btn" data-ign-cat="${key}" title="Ignore all issues in this category">Ignore all</button>
           <span class="chevron">▾</span>
         </div>
         <div class="issue-list">${items.map(issueItemHtml).join('')}</div>
@@ -1066,13 +1195,23 @@
     }).join('');
 
     container.querySelectorAll('.group-head').forEach(h =>
-      h.addEventListener('click', () => h.closest('.issue-group').classList.toggle('collapsed')));
+      h.addEventListener('click', e => {
+        if (!e.target.closest('.ignore-all-btn')) {
+          h.closest('.issue-group').classList.toggle('collapsed');
+        }
+      }));
+
+    container.querySelectorAll('.ignore-all-btn').forEach(b =>
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        onIgnoreAll(b.dataset.ignCat);
+      }));
 
     container.querySelectorAll('[data-focus]').forEach(b =>
       b.addEventListener('click', () => onFocus(b.dataset.focus)));
 
     container.querySelectorAll('[data-ign-node]').forEach(b =>
-      b.addEventListener('click', () => onIgnore(b.dataset.ignNode, b.dataset.ignType, b)));
+      b.addEventListener('click', () => onIgnore(b.dataset.ignNode, b.dataset.ignType)));
 
     container.querySelectorAll('.issue-detail-toggle').forEach(b =>
       b.addEventListener('click', () => {
@@ -1099,28 +1238,27 @@
     // Stats
     const statDefs = [
       { l:'Nodes checked',       v:s.checkedNodes },
-      { l:'Generic names',       v:s.genericNames,             sub:`${a.genericNames||0} actionable` },
-      { l:'Hidden layers',       v:s.hiddenLayers,             sub:`${a.hiddenLayers||0} actionable` },
-      { l:'Deep nesting',        v:s.deepNesting },
-      { l:'Missing text styles', v:s.missingTextStyles },
-      { l:'Missing color styles',v:s.missingColorStyles },
-      { l:'Button issues',       v:s.buttonsWithoutAutoLayout, sub:`${a.buttonsWithoutAutoLayout||0} actionable` },
-      { l:'Section layout',      v:s.sectionsWithoutAutoLayout,sub:`${a.sectionsWithoutAutoLayout||0} actionable` },
-      { l:'Missing export',      v:s.missingExportSettings,    sub:`${a.missingExportSettings||0} actionable` },
-      { l:'Vectors to flatten',  v:s.vectorsToFlatten,         sub:`${a.vectorsToFlatten||0} actionable` },
-      { l:'Masks',               v:s.masksFound },
-      { l:'Line separators',     v:s.lineObjects },
+      { l:'Generic names',       v:s.genericNames,             sub:`${a.genericNames||0} actionable`, cat:'structure' },
+      { l:'Hidden layers',       v:s.hiddenLayers,             sub:`${a.hiddenLayers||0} actionable`, cat:'cleanup' },
+      { l:'Deep nesting',        v:s.deepNesting,              cat:'structure' },
+      { l:'Missing text styles', v:s.missingTextStyles,        cat:'styles' },
+      { l:'Missing color styles',v:s.missingColorStyles,       cat:'styles' },
+      { l:'Button issues',       v:s.buttonsWithoutAutoLayout, sub:`${a.buttonsWithoutAutoLayout||0} actionable`, cat:'buttons' },
+      { l:'Section layout',      v:s.sectionsWithoutAutoLayout,sub:`${a.sectionsWithoutAutoLayout||0} actionable`, cat:'buttons' },
+      { l:'Missing export',      v:s.missingExportSettings,    sub:`${a.missingExportSettings||0} actionable`, cat:'assets' },
+      { l:'Vectors to flatten',  v:s.vectorsToFlatten,         sub:`${a.vectorsToFlatten||0} actionable`, cat:'assets' },
+      { l:'Masks',               v:s.masksFound,               cat:'cleanup' },
+      { l:'Line separators',     v:s.lineObjects,              cat:'cleanup' },
       // v17 new stats
-      { l:'Text overflow',       v:s.textOverflow },
-      { l:'Auto line-height',    v:s.autoLineHeight },
-      { l:'Missing fonts',       v:s.missingFonts },
-      { l:'Section overlaps',    v:s.sectionOverlaps },
-      { l:'Spacing inconsistency',v:s.nearDupSpacing },
-      { l:'No mobile frame',     v:s.noMobileFrame },
-      { l:'Interactive w/o states',v:s.interactivePatterns }
+      { l:'Text overflow',       v:s.textOverflow,             cat:'accuracy' },
+      { l:'Auto line-height',    v:s.autoLineHeight,           cat:'accuracy' },
+      { l:'Missing fonts',       v:s.missingFonts,             cat:'accuracy' },
+      { l:'Section overlaps',    v:s.sectionOverlaps,          cat:'accuracy' },
+      { l:'Spacing inconsistency',v:s.nearDupSpacing,          cat:'accuracy' },
+      { l:'Interactive w/o states',v:s.interactivePatterns,    cat:'accuracy' }
     ];
-    $('statsGrid').innerHTML = statDefs.map(({ l, v, sub }) => {
-      const cls = v == null ? 'muted' : v > 0 ? 'bad' : 'ok';
+    $('statsGrid').innerHTML = statDefs.map(({ l, v, sub, cat }) => {
+      const cls = cat ? `cat-${cat}` : (v == null ? 'muted' : v > 0 ? 'bad' : 'ok');
       return `<div class="stat-card">
         <div class="stat-val ${cls}">${v != null ? v : '–'}</div>
         <div class="stat-lbl">${l}</div>
@@ -1129,37 +1267,28 @@
     }).join('');
 
     // Issues
-    const filtered = (report.issues || []).filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`));
-    $('ignoreNote').textContent = ignoredAuditKeys.size
-      ? `${ignoredAuditKeys.size} issue${ignoredAuditKeys.size > 1 ? 's' : ''} ignored this session`
-      : '';
+    lastIssues = report.issues || [];
+    const filtered = lastIssues.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`));
 
-    const total = (report.issues || []).length;
     if (!filtered.length) {
-      $('totalBadge').style.display = 'none';
-      $('issues').innerHTML = `<div class="empty">
-        <div class="empty-icon">✅</div>
-        <div class="empty-title">No issues found</div>
-        <div class="empty-desc">This scope matches all SOP rules.</div>
+      $('issues').innerHTML = `<div style="border:1px dashed var(--border-strong);border-radius:var(--radius-lg);text-align:center;padding:36px 20px 28px;background:var(--surface);">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--blue-50);border:2px solid var(--blue-100);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4.5 10.5l4 4 7-8" stroke="var(--blue-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">No issues yet</div>
+        <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;max-width:260px;margin:0 auto;">Run an audit to scan the current page or a selection for WordPress-handoff issues.</div>
       </div>`;
     } else {
-      $('totalBadge').textContent = filtered.length + ' issues';
-      $('totalBadge').className = 'badge badge-red';
-      $('totalBadge').style.display = '';
       const grouped = groupBy(filtered);
       renderGroupedIssues(
         $('issues'), grouped, CAT_DOTS, CAT_LABELS,
-        nodeId => parent.postMessage({ pluginMessage: { type:'focus-node', nodeId } }, '*'),
-        (nodeId, issueType, btn) => {
-          ignoredAuditKeys.add(`${nodeId}:${issueType}`);
-          parent.postMessage({ pluginMessage: { type:'ignore-issue', nodeId, issueType } }, '*');
-        }
+        nodeId => parent.postMessage({ pluginMessage: { type: 'focus-node', nodeId } }, '*'),
+        removeSingleIssue,
+        removeCategoryIssues
       );
     }
 
-    $('footerNote').textContent = total
-      ? `${total} total issue${total>1?'s':''} — ${filtered.length} shown${ignoredAuditKeys.size ? ` (${ignoredAuditKeys.size} hidden)` : ''}`
-      : 'No issues found. File looks clean.';
+    updateSummaryBadges();
   }
 
   // ── Empty / ready state button wiring ───────────────────────────────────
@@ -1183,7 +1312,8 @@
     ignoredAuditKeys.clear();
     parent.postMessage({ pluginMessage:{ type:'clear-ignored' } }, '*');
   };
-  $('closeBtn').onclick = () => parent.postMessage({ pluginMessage:{ type:'close' } }, '*');
+  $('closeBtn').onclick   = () => parent.postMessage({ pluginMessage:{ type:'close' } }, '*');
+  $('rescan2').onclick     = () => parent.postMessage({ pluginMessage:{ type:'run-audit' } }, '*');
 
   // ── Typography & Colors tab ──────────────────────────────────────────────
   $('typoClarify').onclick = () => {

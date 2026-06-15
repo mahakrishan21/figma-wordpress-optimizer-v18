@@ -1701,12 +1701,17 @@ figma.ui.onmessage = async (msg) => {
       return;
     }
     if (msg.type === 'ignore-issue') {
-      captureSelectionIds();
-      ignoredIssueKeys.add(`${msg.nodeId}:${msg.issueType}`);
-      const report = await collectIssues();
-      storeAudit(report);
-      figma.ui.postMessage({ type: 'report', report, extraMessage: 'Issue ignored for this session.' });
-      await restoreSelectionIds();
+      if (msg.nodeId && msg.issueType) {
+        ignoredIssueKeys.add(`${msg.nodeId}:${msg.issueType}`);
+      }
+      return;
+    }
+    if (msg.type === 'ignore-issues-bulk') {
+      for (const pair of (msg.pairs || [])) {
+        if (pair.nodeId && pair.issueType) {
+          ignoredIssueKeys.add(`${pair.nodeId}:${pair.issueType}`);
+        }
+      }
       return;
     }
     if (msg.type === 'clear-ignored') {
