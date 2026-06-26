@@ -1,0 +1,11 @@
+# Development / session files
+SESSION_NOTES.md
+
+# Design source assets (not needed in repo)
+assets/icon-source.png
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/

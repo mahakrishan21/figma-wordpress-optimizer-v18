@@ -6,6 +6,37 @@ All notable changes to this project are documented in this file.
 
 - Nothing yet.
 
+## [1.1.0] — 2026-06-26 (V18)
+
+### Added
+- **Toast notification system** — all status messages, action results, warnings and errors now slide in as toasts at the top of the plugin; auto-dismiss with hover-pause
+- **Duplicate & Run Audit** — "Create Duplicate Before Changes" checkbox on ready screen; "Duplicate & Run Audit" button in toolbar; versioned naming (v1, v2, v3…)
+- **Rules reference popup** — info `i` button in header opens a popup listing all 24 audit rules grouped by category
+- `image-fit-mode` rule — flags image fills using Fit (letterboxing) or Crop (complex CSS replication) mode
+- `section-spacing-inconsistency` rule — flags sections with inconsistent padding vs dominant pattern
+- **Stat cards clickable** — clicking a stat card jumps to that category's accordion group
+- **Collapse/Expand** buttons on Audit Stats section, Issue Summary accordion groups, and Typography & Colors section dividers
+- **Focus buttons** on Unlinked Colors and Unlinked Text rows in Typography & Colors tab
+
+### Changed
+- **Selection-only scope** — all three tabs now work only on selected frame; no page fallback
+- **Instance/component skipping** — all rules skip nodes inside instances; `missing-color-style` and `missing-text-style` also skip inside COMPONENT masters
+- **Typography & Colors** excludes component/instance nodes from unlinked color/text detection
+- **Footer** uses `margin-top: auto` (flex column body) — always pinned to viewport bottom
+- `typoSummaryGrid` responsive with `minmax(120px, 1fr)` and proper side padding
+- `Scan File` and `Scan Text Layers` buttons disabled until frame is selected
+- Light theme only — removed `prefers-color-scheme: dark` media query
+
+### Removed
+- `near-dupe-spacing` audit rule (was producing false positives on valid 2px spacing scales)
+- "Interactive w/o states" stat card from stats grid
+- `typo-info-banner` hint text from all Typography & Colors blocks
+- Actionable Recommendations block from Typography & Colors tab
+- Inline revision banner (replaced by toast notification)
+- Design System Opportunities section (removed in V17, documented here)
+
+---
+
 ## [1.0.0] — 2026-06-15
 
 First public-ready release (V17).

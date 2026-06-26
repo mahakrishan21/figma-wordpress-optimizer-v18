@@ -2,7 +2,7 @@
   <img src="assets/icon-256.png" alt="Figma WordPress Optimizer icon" width="128" height="128" />
 </p>
 
-<h1 align="center">Figma WordPress Optimizer — V17</h1>
+<h1 align="center">Figma WordPress Optimizer — V18</h1>
 
 <p align="center">
   <img alt="version" src="https://img.shields.io/badge/version-1.0.0-2563eb">
@@ -69,7 +69,7 @@ This is a private/local plugin. It is not published to the Figma Community.
 1. Open Figma Desktop (required for local plugin development).
 2. Go to **Plugins → Development → Import plugin from manifest…**
 3. Select the `manifest.json` file from this folder.
-4. The plugin will appear under **Plugins → Development → Figma WordPress Optimizer v17**.
+4. The plugin will appear under **Plugins → Development → Figma WordPress Optimizer v18**.
 
 ---
 
@@ -96,7 +96,7 @@ The plugin panel is divided into these sections, top to bottom:
 
 ### Typical workflow
 
-1. Open the plugin via **Plugins → Development → Figma WordPress Optimizer v17**.
+1. Open the plugin via **Plugins → Development → Figma WordPress Optimizer v18**.
 2. Optionally select one or more frames to narrow the scope. If nothing is selected the entire page is scanned.
 3. Click **Run audit**. A progress bar shows live progress through nodes.
 4. Review the stats grid and the issue groups below it.
@@ -125,7 +125,7 @@ The plugin panel is divided into these sections, top to bottom:
 
 The plugin runs **23 checks** on every node in scope, across **6 categories**. Each check produces issues with one of three severity levels: **high**, **medium**, or **low**.
 
-### Accuracy & performance (new in V17)
+### Accuracy & performance (added in V17, expanded V18)
 
 | Issue type | Severity | Description | Condition |
 |---|---|---|---|
@@ -499,7 +499,7 @@ The plugin follows the standard Figma plugin two-process model:
 ## File Structure
 
 ```
-figma-wordpress-optimizer-v17/
+figma-wordpress-optimizer-v18/
 ├── manifest.json     — Figma plugin manifest (name, entry points, permissions)
 ├── code.js           — Plugin sandbox: audit engine, typography/color analysis, fix actions, message handler
 ├── ui.html           — Plugin UI: HTML + CSS + inline JS (Audit, Spelling & Grammar, Typography & Colors tabs)

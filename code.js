@@ -34,12 +34,14 @@ const ISSUE_TO_STAT = {
   // v17 new checks
   'text-overflow': 'textOverflow',
   'auto-line-height': 'autoLineHeight',
-  'near-dupe-spacing': 'nearDupSpacing',
+
   'section-overlap': 'sectionOverlaps',
   'missing-font': 'missingFonts',
   'no-mobile-frame': 'noMobileFrame',
   'interactive-no-states': 'interactivePatterns',
-  'multiple-fonts': 'multipleFonts'
+  'multiple-fonts': 'multipleFonts',
+  'section-spacing-inconsistency': 'sectionPaddingIssues',
+  'image-fit-mode': 'imageFitMode'
 };
 
 // Static lookup: why each issue matters and how to fix it.
@@ -105,6 +107,10 @@ const ISSUE_DETAILS = {
     why: 'Assets without export settings cannot be exported from Figma programmatically. Developers must manually drag images out, which breaks automated handoff pipelines and causes inconsistent resolution.',
     steps: ['Select the asset (image, icon, illustration).', 'In the right panel, scroll to "Export" at the bottom.', 'Click "+" to add an export preset.', 'For photos: PNG @2x. For icons/logos: SVG.', 'Use the "Mark exportable assets" button to bulk-add export settings to all detected assets.']
   },
+  'image-fit-mode': {
+    why: 'Fit mode leaves letterboxing (whitespace) around the image because it scales to fit rather than cover. Crop mode manually repositions the image inside the frame — the exact pan/zoom values are stored in an imageTransform matrix that developers cannot easily read or replicate in CSS, so the image often looks different in the built WordPress page. Both modes should be replaced with Fill (cover) for reliable handoff.',
+    steps: ['Select the layer.', 'In the Fill panel, click the image fill swatch to open the image editor.', 'Change the scale mode from "Fit" or "Crop" to "Fill" (the cover icon).', 'If the image focal point shifts, use the pan handles inside the fill editor to recentre the subject.', 'Alternatively, pre-crop the image in an external editor and re-import it so no Figma transform is needed.', 'Re-run the audit to confirm the issue is resolved.']
+  },
   // v17 new checks
   'text-overflow': {
     why: 'The text node\'s bounding box extends past its parent container. In WordPress, browsers clip this overflow or wrap text differently depending on CSS rules — the rendered result will not match the design.',
@@ -114,10 +120,7 @@ const ISSUE_DETAILS = {
     why: 'Figma\'s AUTO line-height uses the font\'s internal metrics, which differ between operating systems and browsers. Without an explicit px or % value, the developer must guess — leading to subtle spacing differences between the design and the built page.',
     steps: ['Select the text node.', 'In the right panel, find the Line height field (looks like multi-line spacing icon).', 'Replace "Auto" with a specific value — common ratios: body text = 1.5× font size, headings = 1.1–1.25× font size.', 'For 16px body text, try 24px (150%) as a starting point.', 'Bind it to a text style so the value propagates across all matching text nodes.']
   },
-  'near-dupe-spacing': {
-    why: 'Near-identical spacing values (e.g. 30px and 32px) create multiple CSS custom properties that were probably meant to be one. This leads to inconsistent rhythm in the WordPress theme and is hard to fix after development.',
-    steps: ['Open the Figma Variables panel (right panel → Local variables).', 'Create a Spacing collection with a defined scale: 8, 16, 24, 32, 48, 64, 96px.', 'Select each frame with the inconsistent spacing value.', 'In the Auto Layout padding/gap fields, click the variable icon and bind to the nearest scale value.', 'Delete any variables or direct values that fall between scale steps.']
-  },
+
   'section-overlap': {
     why: 'Overlapping sections map to either a negative margin-top or position:absolute with z-index in CSS — both are fragile and can break the layout at different viewport widths or when content changes length.',
     steps: ['Check if the overlap is intentional (e.g. a card that visually bleeds into the next section).', 'If intentional: document it with a note on the frame ("Intentional overlap: card bleeds 40px into next section").', 'If unintentional: drag one section up or down until its bounding box no longer overlaps the other.', 'Use Figma\'s smart guides — hold Shift while dragging — to snap to integer Y values.', 'Re-run the audit to confirm the overlap is resolved.']
@@ -137,6 +140,10 @@ const ISSUE_DETAILS = {
   'multiple-fonts': {
     why: 'More than two distinct font families in a design often signals an accidental font substitution. Each unique font family adds an extra web font request in WordPress, increasing page load time and potentially mismatching the brand guidelines.',
     steps: ['Open the right panel and inspect the font family fields across text nodes.', 'Identify which font is the "intruder" — often a system font (Helvetica, Arial) that replaced a brand font that wasn\'t installed.', 'Select all text nodes using the unwanted font (Edit → Select All with Same Font).', 'Change the font family to the correct brand font.', 'Re-run the audit to confirm only the expected 1–2 font families remain.']
+  },
+  'section-spacing-inconsistency': {
+    why: 'Inconsistent section padding breaks the visual rhythm of the page and forces developers to hard-code differing spacing values rather than using a shared spacing token or scale.',
+    steps: ['Note the expected padding value shown in this issue — it reflects the dominant pattern across similar sections on this page.', 'Select the section and adjust its padding (via Auto Layout or frame constraints) to align with that value.', 'Use a Figma variable or spacing token so all sections stay in sync when the value changes.', 'Compare this section side-by-side with adjacent sections in the canvas to verify the visual rhythm is restored.']
   }
 };
 
@@ -335,7 +342,7 @@ function getAllNodes(rootNodes) {
 }
 
 function getScopeNodes() {
-  return figma.currentPage.selection.length ? figma.currentPage.selection : figma.currentPage.children;
+  return figma.currentPage.selection.slice();
 }
 
 async function resolveNodesByIds(ids) {
@@ -455,7 +462,9 @@ function nodePath(node) {
 
 function hasStyleOrVariableForText(node) {
   if (node.type !== 'TEXT') return true;
-  const hasStyle = !!node.textStyleId && node.textStyleId !== figma.mixed;
+  // figma.mixed means each text range has its own style applied — intentionally mixed, not unstyled
+  if (node.textStyleId === figma.mixed) return true;
+  const hasStyle = !!node.textStyleId;
   const bound = node.boundVariables || {};
   const hasVar = !!bound.fontSize || !!bound.fontFamily || !!bound.fontWeight || !!bound.letterSpacing || !!bound.lineHeight || !!bound.paragraphSpacing || !!bound.fills || !!bound.textRangeFills;
   return hasStyle || hasVar;
@@ -508,6 +517,8 @@ function shouldIgnoreIssue(nodeId, type) {
 
 function addIssue(issues, stats, type, severity, message, node, statKey, action = null, extra = {}) {
   if (shouldIgnoreIssue(node.id, type)) return;
+  // Nodes inside instances are read-only — silently skip all rules
+  if (ancestorTypes(node).includes('INSTANCE')) return;
   const blockedReason = action ? getBlockedReason(node, action) : null;
   const actionable = action ? !blockedReason : false;
   if (statKey) stats[statKey]++;
@@ -531,6 +542,9 @@ function isGenericName(node) {
   const raw = (node.name || '').trim();
   const name = normalizeName(raw);
   if (isVectorLikeNode(node)) return false;
+  // Components, instances, and any node nested inside an instance are dynamic — skip
+  if (node.type === 'INSTANCE' || node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') return false;
+  if (ancestorTypes(node).includes('INSTANCE')) return false;
   if (!raw) return true;
   if (/^(frame|group|rectangle|text|component|instance)(\s+\d+)?$/i.test(raw)) return true;
   if (GENERIC_NAMES.has(name) && name !== 'vector' && name !== 'line' && name !== 'ellipse' && name !== 'polygon' && name !== 'star') return true;
@@ -658,12 +672,14 @@ function createEmptyStats(checkedNodes = 0) {
     // v17 new stats
     textOverflow: 0,
     autoLineHeight: 0,
-    nearDupSpacing: 0,
+
     sectionOverlaps: 0,
     missingFonts: 0,
     noMobileFrame: 0,
     interactivePatterns: 0,
     multipleFonts: 0,
+    sectionPaddingIssues: 0,
+    imageFitMode: 0,
     actionable: {}
   };
 }
@@ -698,11 +714,14 @@ async function collectIssues() {
         addIssue(issues, stats, 'deep-nesting', 'medium', 'Hierarchy is deeply nested with wrapper-like containers. Keep nesting only where it is structurally needed.', node, 'deepNesting');
       }
 
-      if (node.type === 'TEXT' && !hasStyleOrVariableForText(node)) {
+      var _inComponentCtx = node.type === 'INSTANCE' || node.type === 'COMPONENT' || node.type === 'COMPONENT_SET' ||
+        ancestorTypes(node).includes('COMPONENT') || ancestorTypes(node).includes('INSTANCE');
+
+      if (node.type === 'TEXT' && !hasStyleOrVariableForText(node) && !_inComponentCtx) {
         addIssue(issues, stats, 'missing-text-style', 'high', 'Text is not linked to a text style or variable.', node, 'missingTextStyles');
       }
 
-      if (('fills' in node) && !paintUsesStyleOrVariable(node)) {
+      if (('fills' in node) && !paintUsesStyleOrVariable(node) && !_inComponentCtx) {
         addIssue(issues, stats, 'missing-color-style', 'high', 'Solid fill is not linked to a style or variable.', node, 'missingColorStyles');
       }
 
@@ -767,10 +786,21 @@ async function collectIssues() {
       if (node.type === 'TEXT' && node.lineHeight !== figma.mixed) {
         const lh = node.lineHeight;
         if (lh && lh.unit === 'AUTO') {
-          addIssue(issues, stats, 'auto-line-height', 'medium', 'Text uses AUTO line-height — developers need an explicit value to implement accurately.', node, 'autoLineHeight');
+          addIssue(issues, stats, 'auto-line-height', 'medium', 'Text uses AUTO line-height — developers need an explicit value to implement accurately.', node, 'autoLineHeight', null, { fontSize: node.fontSize !== figma.mixed ? node.fontSize : null });
         }
       }
 
+
+      // ── v17: Image fill not set to Fill (cover) mode ─────────────────
+      if ('fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
+        var _hasFitFill  = node.fills.some(function(f) { return f.type === 'IMAGE' && f.scaleMode === 'FIT'; });
+        var _hasCropFill = node.fills.some(function(f) { return f.type === 'IMAGE' && f.scaleMode === 'CROP'; });
+        if (_hasFitFill) {
+          addIssue(issues, stats, 'image-fit-mode', 'medium', '"' + node.name + '" image fill is set to Fit — the image will not cover its frame and will show whitespace (letterboxing). Change the scale mode to Fill (cover).', node, 'imageFitMode');
+        } else if (_hasCropFill) {
+          addIssue(issues, stats, 'image-fit-mode', 'medium', '"' + node.name + '" image fill is set to Crop — the manual crop/pan is difficult to replicate in CSS and may look different in the built layout. Change to Fill (cover) or export as a pre-cropped image.', node, 'imageFitMode');
+        }
+      }
 
       // ── v17: Interactive component without state variants ──────────────
       const INTERACTIVE_RX = [
@@ -780,17 +810,41 @@ async function collectIssues() {
         { rx: /\b(modal|popup|dialog|overlay|lightbox)\b/i, label: 'modal' },
       ];
       const STATE_HINT = /\b(hover|active|pressed|open|closed|focus|disabled|expanded|collapsed)\b/i;
-      for (const { rx, label } of INTERACTIVE_RX) {
-        if (rx.test(node.name) && hasChildren(node)) {
-          const childNames = node.children.map(c => c.name).join(' ');
-          const siblingNames = node.parent && node.parent.type === 'COMPONENT_SET'
-            ? node.parent.children.map(c => c.name).join(' ')
-            : '';
-          if (!STATE_HINT.test(childNames) && !STATE_HINT.test(siblingNames)) {
-            addIssue(issues, stats, 'interactive-no-states', 'low', `"${node.name}" looks like a ${label} but has no state variants (hover, open, closed).`, node, 'interactivePatterns');
+      for (var _rix = 0; _rix < INTERACTIVE_RX.length; _rix++) {
+        var _irx = INTERACTIVE_RX[_rix].rx, _ilabel = INTERACTIVE_RX[_rix].label;
+        if (!_irx.test(node.name) || !hasChildren(node)) continue;
+
+        // Skip section wrappers: name contains "section", is a top-level page child,
+        // or is an oversized non-component frame (layout container, not an interactive element)
+        var _isComponentNode = node.type === 'COMPONENT' || node.type === 'COMPONENT_SET' || node.type === 'INSTANCE';
+        var _isSectionWrapper =
+          /\bsection\b/i.test(node.name) ||
+          (node.parent && node.parent.type === 'PAGE') ||
+          (!_isComponentNode && typeof node.width === 'number' && node.width > 900) ||
+          (!_isComponentNode && typeof node.height === 'number' && node.height > 500);
+        // Skip content/child frames: the interactive keyword describes CONTEXT, not the component itself.
+        // e.g. "Popup Image Content", "Modal Body", "Accordion Inner Wrapper" are parts, not the control.
+        var _isContentFrame = /\b(content|image|img|body|inner|area|wrapper|container|text|heading|title|icon|media|video|bg|background|copy|detail|copy)\b/i.test(node.name);
+        if (_isSectionWrapper || _isContentFrame) break;
+
+        var _childNames = node.children.map(function(c) { return c.name; }).join(' ');
+        // Also check grandchildren — variant names are often one level deeper
+        var _grandChildNames = '';
+        for (var _ci = 0; _ci < node.children.length; _ci++) {
+          var _ch = node.children[_ci];
+          if (hasChildren(_ch)) {
+            for (var _gi = 0; _gi < _ch.children.length; _gi++) {
+              _grandChildNames += ' ' + _ch.children[_gi].name;
+            }
           }
-          break;
         }
+        var _siblingNames = node.parent && node.parent.type === 'COMPONENT_SET'
+          ? node.parent.children.map(function(c) { return c.name; }).join(' ')
+          : '';
+        if (!STATE_HINT.test(_childNames) && !STATE_HINT.test(_grandChildNames) && !STATE_HINT.test(_siblingNames)) {
+          addIssue(issues, stats, 'interactive-no-states', 'low', '"' + node.name + '" looks like a ' + _ilabel + ' but has no state variants (hover, open, closed).', node, 'interactivePatterns');
+        }
+        break;
       }
 
       if (parent && hasChildren(parent) && (parent.type === 'FRAME' || parent.type === 'GROUP')) {
@@ -822,28 +876,6 @@ async function collectIssues() {
     addIssue(issues, stats, 'missing-export', 'medium', 'Asset should be marked exportable.', node, 'missingExportSettings', 'add-export-settings');
   }
 
-  // ── v17: Near-duplicate spacing (aggregate, post-loop) ──────────────────
-  try {
-    const spacingVals = [];
-    for (const { node: n } of entries) {
-      if ((n.type === 'FRAME' || n.type === 'COMPONENT' || n.type === 'INSTANCE') && n.layoutMode && n.layoutMode !== 'NONE') {
-        [n.paddingTop, n.paddingBottom, n.paddingLeft, n.paddingRight, n.itemSpacing]
-          .filter(v => typeof v === 'number' && v > 0 && v < 1000)
-          .forEach(v => spacingVals.push(Math.round(v)));
-      }
-    }
-    const uniqSpacing = [...new Set(spacingVals)].sort((a, b) => a - b);
-    const dupePairs = [];
-    for (let i = 0; i < uniqSpacing.length - 1; i++) {
-      const diff = uniqSpacing[i + 1] - uniqSpacing[i];
-      if (diff > 0 && diff <= 2) dupePairs.push([uniqSpacing[i], uniqSpacing[i + 1]]);
-    }
-    if (dupePairs.length > 0) {
-      const pairText = dupePairs.slice(0, 3).map(([a, b]) => `${a}px / ${b}px`).join(', ');
-      addIssue(issues, stats, 'near-dupe-spacing', 'low', `Near-duplicate spacing values: ${pairText}. Standardize to a consistent scale.`, figma.currentPage, 'nearDupSpacing');
-    }
-  } catch (e) {}
-
   // ── v17: Section overlaps (aggregate, post-loop) ─────────────────────────
   try {
     const topSections = scopeNodes.flatMap(root => {
@@ -859,6 +891,84 @@ async function collectIssues() {
       const overlap = (curr.y + curr.height) - next.y;
       if (overlap > 2) {
         addIssue(issues, stats, 'section-overlap', 'medium', `"${topSections[i].name}" overlaps "${topSections[i + 1].name}" by ${Math.round(overlap)}px.`, topSections[i], 'sectionOverlaps');
+      }
+    }
+  } catch (e) {}
+
+  // ── v17: Section spacing consistency (aggregate, post-loop) ─────────────
+  try {
+    // Sections are the CHILDREN of the selected frame(s), not the selected frames themselves.
+    // getScopeNodes() returns the selected frame (or page top-level frames if nothing selected).
+    // Either way, we look one level deeper — into their children — to find content sections.
+    var _ssRoots = getScopeNodes();
+    var _ssCandidates = [];
+    for (var _ssri = 0; _ssri < _ssRoots.length; _ssri++) {
+      var _ssRoot = _ssRoots[_ssri];
+      if (!hasChildren(_ssRoot)) continue;
+      var _ssRootW = typeof _ssRoot.width === 'number' ? _ssRoot.width : 0;
+      for (var _ssci = 0; _ssci < _ssRoot.children.length; _ssci++) {
+        var _ssc = _ssRoot.children[_ssci];
+        if ((_ssc.type !== 'FRAME' && _ssc.type !== 'SECTION' && _ssc.type !== 'COMPONENT') || _ssc.visible === false) continue;
+        var _sscW = typeof _ssc.width === 'number' ? _ssc.width : 0;
+        // Accept if at least 200px wide, or at least 30% of parent width
+        if (_sscW < 200 && (_ssRootW === 0 || _sscW / _ssRootW < 0.3)) continue;
+        _ssCandidates.push(_ssc);
+      }
+    }
+    var _ssItems = [];
+    for (var _ssi = 0; _ssi < _ssCandidates.length; _ssi++) {
+      var _ssn = _ssCandidates[_ssi];
+      if (_sectionExcluded(_ssn)) continue;
+      var _ssArea = _findContentArea(_ssn);
+      var _ssp = _resolveGenPad(_ssArea.measureNode);
+      if (!_ssp) continue;
+      // Sanity: all sides non-negative, none over 400px
+      if (_ssp.top < 0 || _ssp.bottom < 0 || _ssp.left < 0 || _ssp.right < 0) continue;
+      if (Math.max(_ssp.top, _ssp.bottom, _ssp.left, _ssp.right) > 400) continue;
+      _ssItems.push({ sectionNode: _ssn, flagNode: _ssArea.flagNode, contextLabel: _ssArea.contextLabel, pad: _ssp });
+    }
+
+    if (_ssItems.length >= 3) {
+      var _ssSides = ['top', 'bottom', 'left', 'right'];
+      var _ssDom = {};
+      for (var _ssdi = 0; _ssdi < _ssSides.length; _ssdi++) {
+        var _ssside = _ssSides[_ssdi];
+        var _ssVals = _ssItems.map(function(d) { return Math.round(d.pad[_ssside]); });
+        var _ssClusters = _clusterVals(_ssVals, 8);
+        _ssDom[_ssside] = _findSpacingPattern(_ssClusters, _ssItems.length);
+      }
+
+      var _ssHasPattern = _ssSides.some(function(sd) {
+        return _ssDom[sd] && _ssDom[sd].type !== 'none';
+      });
+
+      if (!_ssHasPattern) {
+        // No dominant system — report once on the first section
+        addIssue(issues, stats, 'section-spacing-inconsistency', 'low',
+          'No consistent section spacing system detected — content areas use unrelated padding values. Consider establishing a shared spacing scale.',
+          _ssItems[0].flagNode, 'sectionPaddingIssues');
+      } else {
+        for (var _ssfi = 0; _ssfi < _ssItems.length; _ssfi++) {
+          var _ssitem = _ssItems[_ssfi];
+          var _ssOffParts = [];
+          for (var _ssfsi = 0; _ssfsi < _ssSides.length; _ssfsi++) {
+            var _sssd = _ssSides[_ssfsi];
+            var _ssdom = _ssDom[_sssd];
+            if (!_ssdom || _ssdom.type === 'none') continue;
+            var _ssVal = Math.round(_ssitem.pad[_sssd]);
+            var _ssExp = _ssdom.primary.rep;
+            var _ssDev = Math.abs(_ssVal - _ssExp);
+            if (_ssDev <= 8) continue;
+            // Allow if matches a recognised secondary pattern
+            if (_ssdom.type === 'dual' && Math.abs(_ssVal - _ssdom.secondary.rep) <= 8) continue;
+            _ssOffParts.push(_sssd + ' ' + _ssVal + 'px (expected ~' + _ssExp + 'px)');
+          }
+          if (_ssOffParts.length > 0) {
+            addIssue(issues, stats, 'section-spacing-inconsistency', 'low',
+              _ssitem.contextLabel + ' has inconsistent spacing — ' + _ssOffParts.join(', ') + '.',
+              _ssitem.flagNode, 'sectionPaddingIssues');
+          }
+        }
       }
     }
   } catch (e) {}
@@ -909,29 +1019,50 @@ async function collectIssues() {
 }
 
 async function renameGenericLayers() {
-  const nodes = await getActionNodes(['generic-name']);
-  let changed = 0;
+  let totalChanged = 0;
   let skipped = 0;
   const reasons = [];
-  for (const node of nodes) {
-    if (!isGenericName(node)) continue;
-    const blocked = getBlockedReason(node, 'rename-generic');
-    if (blocked) {
-      skipped++;
-      if (reasons.length < 3) reasons.push(blocked);
-      continue;
+
+  for (var pass = 0; pass < 3; pass++) {
+    // Pass 0 uses the audited node list; subsequent passes re-scan to catch stragglers
+    // whose inferred name depended on a sibling/parent being renamed first.
+    var candidates;
+    if (pass === 0) {
+      candidates = await getActionNodes(['generic-name']);
+    } else {
+      candidates = getAllNodes(getScopeNodes()).map(function(x) { return x.node; });
     }
-    const nextName = inferName(node);
-    if (!nextName || node.name === nextName) continue;
-    try {
-      node.name = nextName;
-      changed++;
-    } catch (e) {
-      skipped++;
-      if (reasons.length < 3) reasons.push(e && e.message ? e.message : 'Rename failed.');
+
+    var passChanged = 0;
+    for (var i = 0; i < candidates.length; i++) {
+      var node = candidates[i];
+      if (!isGenericName(node)) continue;
+      var blocked = getBlockedReason(node, 'rename-generic');
+      if (blocked) {
+        if (pass === 0) {
+          skipped++;
+          if (reasons.length < 3) reasons.push(blocked);
+        }
+        continue;
+      }
+      var nextName = inferName(node);
+      if (!nextName || node.name === nextName) continue;
+      try {
+        node.name = nextName;
+        passChanged++;
+        totalChanged++;
+      } catch (e) {
+        if (pass === 0) {
+          skipped++;
+          if (reasons.length < 3) reasons.push(e && e.message ? e.message : 'Rename failed.');
+        }
+      }
     }
+
+    if (passChanged === 0) break; // stable — no more renames possible
   }
-  return { changed, skipped, reasons };
+
+  return { changed: totalChanged, skipped: skipped, reasons: reasons };
 }
 
 async function removeHiddenLayers() {
@@ -1167,8 +1298,13 @@ async function outlineStrokesInSelection() {
       if (reasons.length < 3) reasons.push(blocked);
       continue;
     }
+    if (typeof node.outlineStroke !== 'function') {
+      skipped++;
+      if (reasons.length < 3) reasons.push('Node type does not support outline stroke.');
+      continue;
+    }
     try {
-      figma.outlineStroke([node]);
+      node.outlineStroke();
       changed++;
     } catch (e) {
       skipped++;
@@ -1280,14 +1416,37 @@ function formatActionMessage(label, result) {
   return msg;
 }
 
+async function createRevisionCopies() {
+  const sel = figma.currentPage.selection;
+  if (!sel.length) return [];
+  const pageChildren = figma.currentPage.children;
+  const newFrames = [];
+  for (const node of sel) {
+    const baseName = node.name.replace(/\s+v\d+$/, '');
+    let version = 1;
+    while (
+      pageChildren.some(n => n.name === `${baseName} v${version}`) ||
+      newFrames.some(n => n.name === `${baseName} v${version}`)
+    ) { version++; }
+    const clone = node.clone();
+    clone.name = `${baseName} v${version}`;
+    clone.x = node.x + node.width + 80;
+    newFrames.push(clone);
+  }
+  figma.currentPage.selection = newFrames;
+  try { figma.viewport.scrollAndZoomIntoView(newFrames); } catch(e) {}
+  return newFrames;
+}
+
 async function markReportData(extraMessage) {
+  if (!figma.currentPage.selection.length) {
+    figma.ui.postMessage({ type: 'idle' });
+    figma.ui.postMessage({ type: 'no-selection' });
+    return;
+  }
   const report = await collectIssues();
   const selectedCount = figma.currentPage.selection.length;
-  const topFramesOnPage = figma.currentPage.children.filter(n => ['FRAME', 'SECTION', 'COMPONENT_SET', 'COMPONENT'].includes(n.type)).length;
-  report.scope = selectedCount ? 'selection' : 'page';
-  if (!extraMessage && !selectedCount && topFramesOnPage > 1) {
-    extraMessage = 'Tip: this page has multiple top-level frames/sections. Select the specific frame(s) you want before running Audit for a narrower report.';
-  }
+  report.scope = 'selection';
   storeAudit(report);
   figma.ui.postMessage({ type: 'report', report, extraMessage });
 }
@@ -1325,9 +1484,299 @@ function relLum(hex) {
   return 0.2126*c(hex.slice(1,3))+0.7152*c(hex.slice(3,5))+0.0722*c(hex.slice(5,7));
 }
 
+// ── Section spacing consistency helpers ──────────────────────────────────────
+
+function _medianOf(arr) {
+  if (!arr.length) return 0;
+  var s = arr.slice().sort(function(a, b) { return a - b; });
+  var m = Math.floor(s.length / 2);
+  return s.length % 2 === 0 ? Math.round((s[m - 1] + s[m]) / 2) : s[m];
+}
+
+function _clusterVals(values, tol) {
+  tol = tol || 8;
+  var sorted = values.slice().sort(function(a, b) { return a - b; });
+  var clusters = [];
+  var cur = [sorted[0]];
+  for (var i = 1; i < sorted.length; i++) {
+    if (sorted[i] - sorted[i - 1] <= tol) { cur.push(sorted[i]); }
+    else { clusters.push(cur); cur = [sorted[i]]; }
+  }
+  clusters.push(cur);
+  return clusters.map(function(c) {
+    return { rep: _medianOf(c), count: c.length };
+  });
+}
+
+function _findSpacingPattern(clusters, total) {
+  if (!clusters.length || total < 3) return null;
+  var s = clusters.slice().sort(function(a, b) { return b.count - a.count; });
+  if (s[0].count / total >= 0.55) return { type: 'single', primary: s[0], secondary: s[1] || null };
+  if (s.length >= 2 && s[0].count / total >= 0.25 && s[1].count / total >= 0.25) return { type: 'dual', primary: s[0], secondary: s[1] };
+  return { type: 'none' };
+}
+
+// Returns true if this section should be skipped entirely
+function _sectionExcluded(node) {
+  if (/\b(header|hero|footer|banner|cta|call.?to.?action|promo|promotion|navigation|navbar)\b/i.test(node.name)) return true;
+  if (typeof node.height === 'number' && node.height <= 120) return true;
+  if (!hasChildren(node) || !node.children.length) return true;
+  var visC = node.children.filter(function(c) { return c.visible !== false; });
+  if (!visC.length) return true;
+  // Short CTA: height ≤ 280, ≤ 3 text children, at least 1 button
+  if (typeof node.height === 'number' && node.height <= 280) {
+    var tn = 0, bn = 0;
+    visC.forEach(function(c) { if (c.type === 'TEXT') tn++; if (isLikelyButton(c)) bn++; });
+    if (tn <= 3 && bn >= 1) return true;
+  }
+  return false;
+}
+
+// Find the exact container to measure (and flag) for a given section.
+// Returns { measureNode, flagNode, contextLabel } where flagNode is the
+// specific frame the issue will be attached to in Figma.
+function _findContentArea(sectionNode) {
+  var self = { measureNode: sectionNode, flagNode: sectionNode, contextLabel: '"' + sectionNode.name + '"' };
+  if (!hasChildren(sectionNode)) return self;
+  var sW = typeof sectionNode.width  === 'number' ? sectionNode.width  : 0;
+  var sH = typeof sectionNode.height === 'number' ? sectionNode.height : 0;
+  var visC = sectionNode.children.filter(function(c) { return c.visible !== false; });
+
+  // ── Split layout: image column + content column ──────────────────────────
+  // Two direct children each 30–70% wide; one is clearly an image, the other is content
+  if (visC.length === 2 && sW > 0) {
+    var rA = (visC[0].width || 0) / sW, rB = (visC[1].width || 0) / sW;
+    if (rA >= 0.3 && rA <= 0.7 && rB >= 0.3 && rB <= 0.7) {
+      var imgCol = null, contentCol = null;
+      for (var si = 0; si < visC.length; si++) {
+        var sc = visC[si];
+        var isImg = hasImageFill(sc) ||
+          (!hasChildren(sc)) ||
+          (hasChildren(sc) && sc.children.length <= 2 &&
+           sc.children.every(function(gc) { return hasImageFill(gc) || gc.type === 'RECTANGLE'; }));
+        if (isImg && !imgCol) imgCol = sc;
+        else if (!contentCol) contentCol = sc;
+      }
+      if (imgCol && contentCol) {
+        // Only return the content column — image column intentionally touches edges
+        return {
+          measureNode: contentCol,
+          flagNode: contentCol,
+          contextLabel: '"' + contentCol.name + '" (content column in "' + sectionNode.name + '")'
+        };
+      }
+    }
+  }
+
+  // ── Full-bleed background with overlay content ───────────────────────────
+  var bgChild = null, overlayChild = null;
+  for (var bi = 0; bi < visC.length; bi++) {
+    var bc = visC[bi];
+    if (!bc.width || !bc.height || !sW || !sH) continue;
+    if ((bc.type === 'RECTANGLE' || hasImageFill(bc)) && bc.width / sW >= 0.9 && bc.height / sH >= 0.9) {
+      bgChild = bc;
+    } else if (!overlayChild && hasChildren(bc)) {
+      overlayChild = bc;
+    }
+  }
+  if (bgChild && overlayChild) {
+    return {
+      measureNode: overlayChild,
+      flagNode: overlayChild,
+      contextLabel: '"' + overlayChild.name + '" (overlay in "' + sectionNode.name + '")'
+    };
+  }
+
+  // ── Section itself has Auto Layout with non-zero padding ─────────────────
+  if (sectionNode.layoutMode && sectionNode.layoutMode !== 'NONE') {
+    var sp = (sectionNode.paddingTop || 0) + (sectionNode.paddingBottom || 0) +
+             (sectionNode.paddingLeft || 0) + (sectionNode.paddingRight || 0);
+    if (sp > 0) return self;
+  }
+
+  // ── Direct child with Auto Layout padding (the container IS the source) ──
+  for (var ai = 0; ai < visC.length; ai++) {
+    var ac = visC[ai];
+    if (!ac.width || !sW) continue;
+    if (ac.layoutMode && ac.layoutMode !== 'NONE') {
+      var hasPad = ((ac.paddingTop || 0) + (ac.paddingBottom || 0) +
+                    (ac.paddingLeft || 0) + (ac.paddingRight || 0)) > 0;
+      if (hasPad && (ac.width / sW) >= 0.3) {
+        return {
+          measureNode: ac,
+          flagNode: ac,
+          contextLabel: '"' + ac.name + '" (in "' + sectionNode.name + '")'
+        };
+      }
+    }
+  }
+
+  // ── Single dominant non-background content container ─────────────────────
+  var cCandidates = visC.filter(function(c) {
+    if (!c.width || !c.height || !sW) return false;
+    if (hasImageFill(c) && c.width / sW >= 0.85) return false; // skip full-width media
+    return (c.width / sW) >= 0.3 && hasChildren(c);
+  });
+  if (cCandidates.length === 1) {
+    var cc = cCandidates[0];
+    return {
+      measureNode: cc,
+      flagNode: cc,
+      contextLabel: '"' + cc.name + '" (in "' + sectionNode.name + '")'
+    };
+  }
+
+  // ── Fallback: section itself ──────────────────────────────────────────────
+  return self;
+}
+
+// Resolve effective padding for a single node — returns {top,bottom,left,right} or null
+// Resolve effective padding using absoluteBoundingBox so spacing defined at any
+// nesting depth (Auto Layout, nested containers, groups, instances) is captured.
+// Strategy: traverse all descendants, collect the bounding box of actual "content"
+// nodes, then measure the gap between the section's own boundary and that content bbox.
+// Read the effective layout padding from a node by finding the structural container
+// that DECLARES the spacing — not by measuring where content objects end up.
+//
+// Only traverses FRAME / COMPONENT / INSTANCE / GROUP nodes that have children.
+// Completely ignores text, images, shapes, icons, and any decorative content.
+//
+// Returns {top, bottom, left, right} or null.
+function _resolveGenPad(node, depth) {
+  depth = depth || 0;
+  if (depth > 5) return null;
+
+  var w = typeof node.width  === 'number' ? node.width  : 0;
+  var h = typeof node.height === 'number' ? node.height : 0;
+  if (!w || !h) return null;
+
+  // ── Priority 1: explicit Auto Layout padding on this node ─────────────────
+  if (node.layoutMode && node.layoutMode !== 'NONE') {
+    var pt = typeof node.paddingTop    === 'number' ? node.paddingTop    : 0;
+    var pb = typeof node.paddingBottom === 'number' ? node.paddingBottom : 0;
+    var pl = typeof node.paddingLeft   === 'number' ? node.paddingLeft   : 0;
+    var pr = typeof node.paddingRight  === 'number' ? node.paddingRight  : 0;
+    if (pt + pb + pl + pr > 0) {
+      return { top: pt, bottom: pb, left: pl, right: pr };
+    }
+    // AL with zero padding — check children for their own containers
+  }
+
+  if (!hasChildren(node) || !node.children.length) return null;
+
+  // ── Build list of STRUCTURAL children only ─────────────────────────────────
+  // Structural = a frame/component/instance/group that itself contains children.
+  // Decorative nodes (text, images, shapes, vectors, leaf frames) are excluded.
+  var structural = [];
+  for (var ci = 0; ci < node.children.length; ci++) {
+    var c = node.children[ci];
+    if (c.visible === false) continue;
+    var cw = typeof c.width  === 'number' ? c.width  : 0;
+    var ch = typeof c.height === 'number' ? c.height : 0;
+    if (!cw || !ch) continue;
+
+    // Must be a container type — skip any pure visual/leaf node
+    var isContainer = c.type === 'FRAME' || c.type === 'COMPONENT' ||
+                      c.type === 'INSTANCE' || c.type === 'GROUP' || c.type === 'SECTION';
+    if (!isContainer) continue;
+
+    // Must have children of its own (otherwise it's a leaf placeholder)
+    if (!hasChildren(c) || !c.children.length) continue;
+
+    // Skip full-area background containers (image fills covering ≥90% of parent)
+    if (hasImageFill(c) && cw / w >= 0.9 && ch / h >= 0.9) continue;
+
+    // Skip containers that are tiny relative to the parent (decorative boxes, icons)
+    if (cw < w * 0.15 && ch < h * 0.15) continue;
+
+    structural.push(c);
+  }
+
+  if (!structural.length) return null;
+
+  // ── Single structural child → offset + its own padding ───────────────────
+  if (structural.length === 1) {
+    var sc = structural[0];
+    if (typeof sc.x !== 'number' || typeof sc.y !== 'number') return null;
+
+    var offsetTop    = Math.round(sc.y);
+    var offsetBottom = Math.round(h - sc.y - sc.height);
+    var offsetLeft   = Math.round(sc.x);
+    var offsetRight  = Math.round(w - sc.x - sc.width);
+
+    // Recurse into the child to get its own declared padding
+    var childPad = _resolveGenPad(sc, depth + 1);
+    if (childPad) {
+      return {
+        top:    offsetTop    + childPad.top,
+        bottom: offsetBottom + childPad.bottom,
+        left:   offsetLeft   + childPad.left,
+        right:  offsetRight  + childPad.right
+      };
+    }
+    // No deeper padding found — if the child is offset, that offset IS the padding
+    if (offsetTop + offsetBottom + offsetLeft + offsetRight > 0) {
+      return { top: offsetTop, bottom: offsetBottom, left: offsetLeft, right: offsetRight };
+    }
+    return null;
+  }
+
+  // ── Multiple structural children → bounding box of structural children ────
+  // (Only structural containers contribute — decorative elements are excluded above)
+  var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (var si = 0; si < structural.length; si++) {
+    var ss = structural[si];
+    if (typeof ss.x !== 'number' || typeof ss.y !== 'number') continue;
+    minX = Math.min(minX, ss.x);
+    minY = Math.min(minY, ss.y);
+    maxX = Math.max(maxX, ss.x + ss.width);
+    maxY = Math.max(maxY, ss.y + ss.height);
+  }
+  if (!isFinite(minX)) return null;
+
+  return {
+    top:    Math.round(minY),
+    bottom: Math.round(h - maxY),
+    left:   Math.round(minX),
+    right:  Math.round(w - maxX)
+  };
+}
+
+
+// ── End section spacing helpers ───────────────────────────────────────────────
+
 function wcagContrast(hex1, hex2) {
   const l1=relLum(hex1), l2=relLum(hex2);
   return ((Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05));
+}
+
+// Composite a color+opacity over a white background to get the perceived hex
+function blendOnWhite(hex, opacity) {
+  if (typeof opacity !== 'number' || opacity >= 0.99) return hex;
+  var r = parseInt(hex.slice(1,3),16)/255;
+  var g = parseInt(hex.slice(3,5),16)/255;
+  var b = parseInt(hex.slice(5,7),16)/255;
+  var rr = Math.round((opacity*r + (1-opacity))*255).toString(16).padStart(2,'0');
+  var gg = Math.round((opacity*g + (1-opacity))*255).toString(16).padStart(2,'0');
+  var bb = Math.round((opacity*b + (1-opacity))*255).toString(16).padStart(2,'0');
+  return ('#'+rr+gg+bb).toUpperCase();
+}
+
+// Walk up the parent chain and return the hex of the nearest solid-filled ancestor
+function getActualBgHex(node) {
+  var cur = node.parent;
+  while (cur && cur.type !== 'PAGE' && cur.type !== 'DOCUMENT') {
+    if ('fills' in cur && cur.fills !== figma.mixed && Array.isArray(cur.fills)) {
+      for (var _bi = 0; _bi < cur.fills.length; _bi++) {
+        var f = cur.fills[_bi];
+        if (f.type === 'SOLID' && f.visible !== false && (typeof f.opacity !== 'number' || f.opacity > 0.5)) {
+          return rgbToHexStr(f.color);
+        }
+      }
+    }
+    cur = cur.parent;
+  }
+  return null;
 }
 
 async function collectTypographyAndColors() {
@@ -1336,7 +1785,7 @@ async function collectTypographyAndColors() {
     allNodes.push(node);
     if ('children' in node) { for (const c of node.children) walkAll(c); }
   }
-  for (const child of figma.currentPage.children) walkAll(child);
+  for (const child of getScopeNodes()) walkAll(child);
 
   const colorStylesLocal = await figma.getLocalPaintStylesAsync();
   const textStylesLocal  = await figma.getLocalTextStylesAsync();
@@ -1348,6 +1797,9 @@ async function collectTypographyAndColors() {
 
   for (const node of allNodes) {
     if (node.visible === false) continue;
+    // Skip components, instances, and anything nested inside an instance
+    if (node.type === 'INSTANCE' || node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') continue;
+    if (ancestorTypes(node).includes('INSTANCE')) continue;
 
     if ('fills' in node && node.fills !== figma.mixed && Array.isArray(node.fills)) {
       const fsId = 'fillStyleId' in node ? node.fillStyleId : '';
@@ -1386,6 +1838,20 @@ async function collectTypographyAndColors() {
     }
   }
 
+  // Build map: colorStyleId → Set of actual background hexes (from real usage contexts)
+  const styleActualBgs = new Map();
+  for (const node of allNodes) {
+    if (node.visible === false) continue;
+    const fsId = 'fillStyleId' in node ? node.fillStyleId : '';
+    if (typeof fsId === 'string' && fsId.length > 0 && fsId !== figma.mixed) {
+      const bgHex = getActualBgHex(node);
+      if (bgHex) {
+        if (!styleActualBgs.has(fsId)) styleActualBgs.set(fsId, new Set());
+        styleActualBgs.get(fsId).add(bgHex);
+      }
+    }
+  }
+
   // Build color styles data
   const colorStylesData = colorStylesLocal.map(s => {
     const p = s.paints.find(p => p.type==='SOLID' && p.visible!==false);
@@ -1395,7 +1861,16 @@ async function collectTypographyAndColors() {
     let cw = null, cb = null;
     try { cw = parseFloat(wcagContrast(hex,'#FFFFFF').toFixed(2)); } catch(e) {}
     try { cb = parseFloat(wcagContrast(hex,'#000000').toFixed(2)); } catch(e) {}
-    return { id:s.id, name:s.name, hex, opacity:op, usageCount, used:usageCount>0, contrastWhite:cw, contrastBlack:cb };
+    // Actual design backgrounds where this style is used
+    const bgSet = styleActualBgs.get(s.id);
+    const actualContrasts = bgSet
+      ? Array.from(bgSet).slice(0, 3).map(function(bg) {
+          var r = null;
+          try { r = parseFloat(wcagContrast(hex, bg).toFixed(2)); } catch(e) {}
+          return { hex: bg, ratio: r };
+        }).filter(function(x) { return x.ratio !== null; })
+      : [];
+    return { id:s.id, name:s.name, hex, opacity:op, usageCount, used:usageCount>0, contrastWhite:cw, contrastBlack:cb, actualContrasts:actualContrasts };
   });
 
   // Build text styles data
@@ -1418,8 +1893,15 @@ async function collectTypographyAndColors() {
   // Near-duplicate colors (styles + top local)
   const topLocal = [...localColorMap.values()].sort((a,b)=>b.count-a.count).slice(0,40);
   const hexPool = [
-    ...colorStylesData.map(s=>({ hex:s.hex, label:s.name, source:'style' })),
-    ...topLocal.map(l=>({ hex:l.hex, label:'Local ('+l.count+'×)', source:'local' }))
+    ...colorStylesData.map(s=>{
+      var opLabel = (typeof s.opacity==='number' && s.opacity<0.99) ? ' '+Math.round(s.opacity*100)+'%' : '';
+      return { hex:s.hex, opacity:s.opacity||1, visualHex:blendOnWhite(s.hex,s.opacity), label:s.name+opLabel, source:'style' };
+    }),
+    ...topLocal.map(l=>{
+      var op = typeof l.opacity==='number' ? l.opacity : 1;
+      var opLabel = op<0.99 ? ' '+Math.round(op*100)+'%' : '';
+      return { hex:l.hex, opacity:op, visualHex:blendOnWhite(l.hex,op), label:'Local ('+l.count+'×)'+opLabel, source:'local' };
+    })
   ].filter(x=>/^#[0-9A-Fa-f]{6}$/.test(x.hex));
   const nearDupeGroups = [];
   const usedIdx = new Set();
@@ -1428,7 +1910,8 @@ async function collectTypographyAndColors() {
     const group=[hexPool[i]], gIdx=[i];
     for (let j=i+1; j<hexPool.length; j++) {
       if (usedIdx.has(j)) continue;
-      if (colorDist(hexPool[i].hex, hexPool[j].hex) < 0.07) { group.push(hexPool[j]); gIdx.push(j); }
+      // Compare perceived colors (blended on white) — different opacity = different visual color
+      if (colorDist(hexPool[i].visualHex, hexPool[j].visualHex) < 0.07) { group.push(hexPool[j]); gIdx.push(j); }
     }
     if (group.length > 1) { gIdx.forEach(x=>usedIdx.add(x)); nearDupeGroups.push(group); }
   }
@@ -1616,6 +2099,14 @@ figma.ui.onmessage = async (msg) => {
   try {
     if (msg.type === 'run-audit') {
       captureSelectionIds();
+      if (msg.createRevision) {
+        figma.ui.postMessage({ type: 'busy', stage: 'Creating revision copy…' });
+        const copies = await createRevisionCopies();
+        if (copies.length) {
+          figma.ui.postMessage({ type: 'revision-created', names: copies.map(n => n.name) });
+        }
+        captureSelectionIds();
+      }
       figma.ui.postMessage({ type: 'busy', stage: 'Starting audit' });
       await markReportData();
       figma.ui.postMessage({ type: 'idle' });
@@ -1728,6 +2219,10 @@ figma.ui.onmessage = async (msg) => {
       return;
     }
     if (msg.type === 'collect-typo-colors') {
+      if (!figma.currentPage.selection.length) {
+        figma.ui.postMessage({ type: 'no-selection' });
+        return;
+      }
       figma.ui.postMessage({ type: 'typo-colors-busy' });
       try {
         const data = await collectTypographyAndColors();
@@ -1778,6 +2273,10 @@ figma.ui.onmessage = async (msg) => {
       return;
     }
     if (msg.type === 'collect-texts') {
+      if (!figma.currentPage.selection.length) {
+        figma.ui.postMessage({ type: 'no-selection' });
+        return;
+      }
       const scopeNodes = getScopeNodes();
       const entries = getAllNodes(scopeNodes);
       const texts = [];
@@ -1789,6 +2288,13 @@ figma.ui.onmessage = async (msg) => {
         }
       }
       figma.ui.postMessage({ type: 'texts-collected', texts });
+      return;
+    }
+    if (msg.type === 'resize') {
+      figma.ui.resize(
+        Math.min(1200, Math.max(400, msg.width  || 760)),
+        Math.min(960,  Math.max(400, msg.height || 860))
+      );
       return;
     }
     if (msg.type === 'close') {

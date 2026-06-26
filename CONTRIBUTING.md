@@ -25,7 +25,7 @@ Open an issue describing:
 1. Clone the repo.
 2. Open Figma Desktop → **Plugins → Development → Import plugin from manifest…** and select `manifest.json`.
 3. Edit `code.js` (plugin sandbox) and/or `ui.html` (plugin UI).
-4. Reload the plugin in Figma to pick up changes (**Plugins → Development → Figma WordPress Optimizer v17**, or use the "Reload" option from the right-click menu while the plugin is running).
+4. Reload the plugin in Figma to pick up changes (**Plugins → Development → Figma WordPress Optimizer v18**, or use the "Reload" option from the right-click menu while the plugin is running).
 
 ## Code guidelines
 

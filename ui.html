@@ -6,7 +6,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      color-scheme: light dark;
+      color-scheme: light;
       /* Blues */
       --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe;
       --blue-400: #60a5fa; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
@@ -48,27 +48,17 @@
       --cat-cleanup-border:   var(--gray-200);
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --surface: #1f2937; --surface-raised: #111827;
-        --border: #374151; --border-strong: #4b5563;
-        --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #6b7280;
-        --blue-50: #1e3a5f; --blue-100: #1e40af22;
-        --green-50: #052e16; --green-100: #14532d22;
-        --amber-50: #431407; --amber-100: #92400e22;
-        --red-50: #450a0a;  --red-100: #7f1d1d22;
-        --gray-50: #1f2937; --gray-100: #374151;
-      }
-    }
-
     body {
       font: 12px/1.5 -apple-system, 'Inter', system-ui, sans-serif;
       background: var(--surface-raised);
       color: var(--text-primary);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
     }
 
     /* ── Header ────────────────────────────────────────────────────────────── */
     .header {
+      position: sticky; top: 0; z-index: 20;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       padding: 12px 16px 0;
@@ -83,6 +73,64 @@
     }
     .header-title { font-size: 13px; font-weight: 700; color: var(--text-primary); letter-spacing: -.01em; }
     .header-sub   { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+    .info-btn {
+      margin-left: auto; flex-shrink: 0;
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 1.5px solid var(--border-strong); background: var(--surface);
+      color: var(--text-secondary); font-size: 13px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .13s, border-color .13s, color .13s;
+    }
+    .info-btn:hover { background: var(--blue-50); border-color: var(--blue-400); color: var(--blue-600); }
+
+    /* ── Rules popup ──────────────────────────────────────────────────────── */
+    .rules-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 100;
+    }
+    .rules-overlay.open { display: block; }
+    .rules-popup {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: min(360px, calc(100vw - 24px)); max-height: min(520px, calc(100vh - 40px));
+      background: var(--surface); border-radius: var(--radius-xl);
+      box-shadow: 0 16px 48px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+      display: flex; flex-direction: column; z-index: 101;
+    }
+    .rules-popup-head {
+      display: flex; align-items: center; padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 8px;
+    }
+    .rules-popup-head h3 { font-size: 13px; font-weight: 700; color: var(--text-primary); flex: 1; }
+    .rules-popup-count { font-size: 11px; color: var(--text-muted); }
+    .rules-close-btn {
+      width: 22px; height: 22px; border-radius: 50%; border: none;
+      background: var(--gray-100); color: var(--text-secondary);
+      font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .13s;
+    }
+    .rules-close-btn:hover { background: var(--gray-200); }
+    .rules-popup-body { overflow-y: auto; padding: 10px 0 12px; flex: 1; }
+    .rules-cat-section { margin-bottom: 4px; }
+    .rules-cat-label {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 16px 4px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted);
+      position: sticky; top: 0; background: var(--surface); z-index: 1;
+    }
+    .rules-cat-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .rule-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 6px 16px; transition: background .1s;
+    }
+    .rule-row:hover { background: var(--gray-50); }
+    .rule-row-icon {
+      width: 22px; height: 22px; border-radius: var(--radius-sm); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; margin-top: 1px;
+    }
+    .rule-row-text { flex: 1; min-width: 0; }
+    .rule-row-name { font-size: 12px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+    .rule-row-desc { font-size: 10px; color: var(--text-muted); line-height: 1.4; margin-top: 1px; }
 
     /* ── Tabs ──────────────────────────────────────────────────────────────── */
     .tabs { display: flex; gap: 0; }
@@ -98,8 +146,8 @@
     .tab:focus-visible { outline: 2px solid var(--blue-500); outline-offset: -2px; }
 
     /* ── Tab panels ────────────────────────────────────────────────────────── */
-    .tab-panel { display: none; padding: 14px 16px; }
-    .tab-panel.active { display: block; }
+    .tab-panel { display: none;padding: 14px 16px !important;}
+    .tab-panel.active { display: block;  }
 
     /* ── Buttons ───────────────────────────────────────────────────────────── */
     .btn {
@@ -108,7 +156,7 @@
       border: 1px solid var(--border); background: var(--surface);
       color: var(--text-primary); font-size: 12px; font-weight: 500;
       cursor: pointer; transition: background .13s, border-color .13s, color .13s;
-      white-space: nowrap;
+      
     }
     .btn:hover:not(:disabled) {
       border-color: var(--blue-400); color: var(--blue-700); background: var(--blue-50);
@@ -144,8 +192,8 @@
     .toolbar {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
     }
+    .toolbar .btn { min-width: 0; overflow: hidden; }
     .toolbar .btn-primary {
-      
       box-shadow: 0 4px 14px rgba(37,99,235,.38), 0 1px 4px rgba(37,99,235,.18);
     }
     .toolbar-label {
@@ -162,12 +210,22 @@
 
     /* ── Summary row ───────────────────────────────────────────────────────── */
     .summary-row {
-      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; margin-bottom: 10px;
     }
-    .summary-row .btn-sm { margin-left: auto; }
+    .summary-btn-group { margin-left: auto; display: flex; gap: 4px; flex-shrink: 0; }
 
     /* ── Scope badge ───────────────────────────────────────────────────────── */
-    .scope-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; min-height: 22px; }
+    .stats-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0 2px; margin-top: 2px; margin-bottom: 0;
+      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text-muted);
+      cursor: pointer; user-select: none;
+    }
+    .stats-head-title { flex-shrink: 0; }
+    .stats-head-line  { flex: 1; height: 1px; background: var(--border); }
+    #statsBody { transition: none; }
+    #statsSection.collapsed #statsBody { display: none; }
     .badge {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 2px 8px; border-radius: var(--radius-full);
@@ -208,6 +266,36 @@
     .msg-bar.warning { background: var(--amber-50); color: var(--amber-700); border-color: var(--amber-100); }
     .msg-bar.error   { background: var(--red-50);   color: var(--red-700);   border-color: var(--red-100); }
 
+    /* ── Toast notifications ───────────────────────────────────────────────── */
+    #toastContainer {
+      position: fixed; top: 8px; left: 8px; right: 8px; z-index: 500;
+      display: flex; flex-direction: column; gap: 6px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 9px;
+      padding: 9px 10px 9px 12px;
+      border-radius: var(--radius-md); border: 1px solid;
+      font-size: 11px; line-height: 1.5; font-weight: 500;
+      box-shadow: 0 4px 14px rgba(0,0,0,.12), 0 1px 4px rgba(0,0,0,.07);
+      pointer-events: all;
+      animation: toastIn .22s cubic-bezier(.21,1.02,.73,1) both;
+    }
+    .toast.toast-out { animation: toastOut .25s ease forwards; }
+    @keyframes toastIn  { from { opacity:0; transform:translateY(-14px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes toastOut { to   { opacity:0; transform:translateY(-8px)  scale(.95); } }
+    .toast-icon { flex-shrink:0; margin-top:1px; display:flex; align-items:center; }
+    .toast-msg  { flex:1; }
+    .toast-x {
+      flex-shrink:0; background:none; border:none; cursor:pointer;
+      color:currentColor; opacity:.45; padding:2px 3px; border-radius:3px; line-height:1;
+    }
+    .toast-x:hover { opacity:1; }
+    .toast-success { background:var(--green-50);  border-color:var(--green-200);  color:var(--green-700); }
+    .toast-info    { background:var(--blue-50);   border-color:var(--blue-200);   color:var(--blue-700); }
+    .toast-warning { background:var(--amber-50);  border-color:var(--amber-200);  color:var(--amber-600); }
+    .toast-error   { background:var(--red-50);    border-color:var(--red-200);    color:var(--red-700); }
+
     /* ── Stats grid ────────────────────────────────────────────────────────── */
     .stats-grid {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;
@@ -216,8 +304,10 @@
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius-lg); padding: 10px 12px; text-align: center;
     }
-    #statsGrid { grid-template-columns: repeat(6, 1fr); gap: 8px; }
-    #statsGrid .stat-card { text-align: left; }
+    #statsGrid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    #statsGrid .stat-card { text-align: left; min-width: 0; }
+    #typoSummaryGrid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    #typoSummaryGrid .stat-card { text-align: left; min-width: 0; }
     .stat-val  { font-size: 18px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
     .stat-val.ok    { color: var(--green-600); }
     .stat-val.bad   { color: var(--red-600); }
@@ -228,8 +318,51 @@
     .stat-val.cat-buttons   { color: var(--cat-buttons); }
     .stat-val.cat-assets    { color: var(--cat-assets); }
     .stat-val.cat-cleanup   { color: var(--cat-cleanup); }
-    .stat-lbl  { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
+    .stat-val.cat-devnote   { color: var(--blue-600); }
+
+    /* ── Developer Notes accordion ───────────────────────────────────────────── */
+    .dev-notes-wrap { margin-top: 8px; }
+    .dev-notes-group {
+      background: var(--surface); border: 1px solid var(--blue-200);
+      border-radius: var(--radius-xl); overflow: clip;
+    }
+    .dev-notes-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px; cursor: pointer; user-select: none;
+      background: var(--blue-50); position: sticky; top: 0; z-index: 2;
+    }
+    .dev-notes-title { flex: 1; font-size: 12px; font-weight: 600; color: var(--blue-700); }
+    .dev-notes-count {
+      background: var(--blue-100); color: var(--blue-700);
+      border: 1px solid var(--blue-200);
+      font-size: 11px; font-weight: 700; padding: 2px 8px;
+      border-radius: var(--radius-full); min-width: 28px; text-align: center;
+    }
+    .dev-notes-desc {
+      font-size: 10px; color: var(--blue-600); padding: 7px 14px 8px;
+      border-bottom: 1px solid var(--blue-100); line-height: 1.5;
+    }
+    .dev-note-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-bottom: 1px solid var(--border);
+    }
+    .dev-note-item:last-child { border-bottom: none; }
+    .dev-note-body { flex: 1; min-width: 0; }
+    .dev-note-name { font-size: 11px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dev-note-path { font-size: 10px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dev-note-tag {
+      font-size: 10px; color: var(--blue-700); white-space: nowrap;
+      background: var(--blue-50); border: 1px solid var(--blue-200);
+      border-radius: var(--radius-sm); padding: 2px 7px; flex-shrink: 0;
+    }
+    .dev-notes-group.collapsed .dev-notes-desc,
+    .dev-notes-group.collapsed .dev-note-item { display: none; }
+    .dev-notes-group.collapsed .chevron { transform: rotate(-90deg); }
+    .stat-lbl  { font-size: 10px; color: var(--text-muted); line-height: 1.3; overflow-wrap: break-word; }
     .stat-sub  { font-size: 10px; color: var(--blue-600); margin-top: 2px; }
+    .stat-card[data-link-cat] { cursor: pointer; transition: border-color .15s, background .15s; }
+    .stat-card[data-link-cat]:hover { border-color: var(--blue-300); background: var(--blue-50); }
+    .stat-card[data-link-cat]:hover .stat-sub { text-decoration: underline; }
 
     /* ── Section label ─────────────────────────────────────────────────────── */
     .section-row {
@@ -380,12 +513,33 @@
 
     /* ── Footer ────────────────────────────────────────────────────────────── */
     .footer {
-      position: sticky; bottom: 0; z-index: 10;
+      margin-top: auto;
       display: flex; align-items: center; gap: 8px;
       padding: 9px 16px; border-top: 1px solid var(--border);
       background: var(--surface); box-shadow: 0 -1px 4px rgb(0 0 0 / .05);
     }
     .footer-note { font-size: 10px; color: var(--text-muted); flex: 1; line-height: 1.4; }
+
+    /* ── Resize handles ──────────────────────────────────────────────────────── */
+    #resizeEdgeRight {
+      position: fixed; right: 0; top: 0; bottom: 14px;
+      width: 5px; cursor: ew-resize; z-index: 100;
+    }
+    #resizeEdgeBottom {
+      position: fixed; bottom: 0; left: 0; right: 14px;
+      height: 5px; cursor: ns-resize; z-index: 100;
+    }
+    #resizeCorner {
+      position: fixed; right: 0; bottom: 0;
+      width: 14px; height: 14px;
+      cursor: nwse-resize; z-index: 101;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); opacity: .5; transition: opacity .15s;
+    }
+    #resizeCorner:hover { opacity: 1; }
+    #resizeEdgeRight:hover, #resizeEdgeBottom:hover {
+      background: var(--blue-100); opacity: .6;
+    }
 
     /* ── Spelling tab specifics ─────────────────────────────────────────────── */
     .spell-intro {
@@ -526,36 +680,91 @@
       margin-bottom: 8px;
     }
     .ar-btn {/* min-width: 140px;*/ }
+    .ar-revision {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; text-align: left;
+    }
+    .ar-revision input[type="checkbox"] {
+      flex-shrink: 0; width: 14px; height: 14px;
+      accent-color: var(--blue-600); cursor: pointer;
+    }
+    .ar-revision-text { font-size: 11px; color: var(--text-secondary); line-height: 1.4; user-select: none; }
+    .ar-btn-row { display: flex; gap: 8px; align-items: center; justify-content: center; }
+    .ar-btn-dup {
+      border-color: var(--blue-400); color: var(--blue-700); background: var(--blue-50);
+    }
+    .ar-btn-dup:hover:not(:disabled) {
+      background: var(--blue-100); border-color: var(--blue-600);
+    }
 
     /* ── Typography & Colors tab ─────────────────────────────────────────── */
     #tab-typo { padding: 0; }
-    .typo-intro { padding: 20px 16px 16px; border-bottom: 1px solid var(--border); }
+    .typo-intro {   background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px; margin-bottom: 12px;}
     .typo-intro-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
     .typo-intro-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
 
     .typo-results { padding-bottom: 8px; }
-    .typo-section-divider {
-      display: flex; align-items: center; gap: 8px;
-      padding: 12px 14px 8px; margin-top: 4px;
-      font-size: 11px; font-weight: 700; letter-spacing: .06em;
-      text-transform: uppercase; color: var(--text-muted);
-      border-top: 1px solid var(--border);
-    }
-    .typo-section-divider-line { flex: 1; height: 1px; background: var(--border); }
 
-    .typo-block { border: 1px solid var(--border); border-radius: var(--radius-md); margin: 0 12px 6px; overflow: clip; }
+    /* ── Section dividers (COLORS / TYPOGRAPHY) ──────────────────────────────*/
+    .typo-section-divider {
+      display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e5e7eb;
+         padding: 15px 0px;cursor: pointer;
+    }
+    .typo-section.collapsed .typo-section-body { display: none; }
+    .typo-section-icon {
+      width: 22px; height: 22px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .typo-section-icon.colors  { background: var(--blue-50); }
+    .typo-section-icon.typo    { background: var(--violet-50); }
+    .typo-section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--text-secondary);
+    }
+    .typo-section-divider-line { flex: 1; }
+
+    /* ── Typo blocks ─────────────────────────────────────────────────────────*/
+    .typo-block {
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      margin: 10px 0px 10px 0px; overflow: clip;
+      transition: border-color .12s;
+    }
+    .typo-block.issue-active { }
     .typo-block-head {
-      display: flex; align-items: center; gap: 7px;
+      display: flex; align-items: center; gap: 9px;
       padding: 9px 12px; cursor: pointer; background: var(--surface);
-      font-size: 12px; font-weight: 600; color: var(--text-primary);
-      user-select: none;
+      user-select: none; transition: background .1s;  
     }
     .typo-block-head:hover { background: var(--gray-50); }
-    .typo-block-head .chevron { margin-left: auto; font-size: 13px; transition: transform .15s; }
+    .typo-block-icon {
+      width: 28px; height: 28px; border-radius: var(--radius-md); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--gray-100);
+    }
+    .typo-block-icon.info   { background: var(--blue-50); }
+    .typo-block-icon.issue  { background: var(--red-50); }
+    .typo-block-icon.ok     { background: var(--green-50); }
+    .typo-block-meta { flex: 1; min-width: 0; }
+    .typo-block-title { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .typo-block-subtitle { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+    .typo-block-head .chevron { font-size: 11px; color: var(--text-muted); transition: transform .15s; flex-shrink: 0; }
     .typo-block.collapsed .chevron { transform: rotate(-90deg); }
     .typo-block.collapsed .typo-block-body { display: none; }
     .typo-block-body { border-top: 1px solid var(--border); }
+    /* Badge variants */
+    .badge-typo-info   { background: var(--blue-50);  color: var(--blue-700);  border-color: var(--blue-200); }
+    .badge-typo-issue  { background: var(--red-50);   color: var(--red-700);   border-color: var(--red-200); }
+    .badge-typo-ok     { background: var(--green-50); color: var(--green-700); border-color: var(--green-200); }
 
+    .typo-inner-divider {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px 6px; font-size: 10px; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase;
+      color: var(--text-muted); border-top: 1px solid var(--border);
+      background: var(--gray-50);
+    }
+    .typo-inner-divider-line { flex: 1; height: 1px; background: var(--border); }
     .typo-info-banner {
       font-size: 11px; color: var(--blue-700); background: var(--blue-50);
       border-bottom: 1px solid var(--blue-100); padding: 8px 12px; line-height: 1.6;
@@ -742,6 +951,8 @@
 </head>
 <body>
 
+<div id="toastContainer" aria-live="polite" aria-atomic="false"></div>
+
 <!-- ═══════════════════ HEADER + TABS ═══════════════════════════════════════ -->
 <div class="header">
   <div class="header-top">
@@ -754,6 +965,7 @@
       <div class="header-title">Figma WordPress Optimizer</div>
       <div class="header-sub">Audits and prepares designs for WordPress handoff</div>
     </div>
+    <button class="info-btn" id="rulesInfoBtn" title="View all audit rules">i</button>
   </div>
   <div class="tabs">
     <button class="tab active" data-tab="audit"   aria-selected="true"  role="tab">Audit</button>
@@ -806,6 +1018,10 @@
       <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
       Run Audit
     </button>
+    <label class="ar-revision">
+      <input type="checkbox" id="revisionCopyCheck">
+      <span class="ar-revision-text">Create Duplicate Before Changes</span>
+    </label>
   </div>
 
   <!-- ── Panel C: Audit results (hidden until first audit runs) ── -->
@@ -817,6 +1033,10 @@
       <button class="btn btn-primary" id="reAudit">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
         Run Audit
+      </button>
+      <button class="btn ar-btn-dup" id="duplicateSwitch">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2z"/></svg>
+        Duplicate &amp; Run Audit
       </button>
       <div class="toolbar-label">Automated Fixes</div>
       <button class="btn" id="rename">
@@ -833,7 +1053,7 @@
       </button>
       <button class="btn" id="buttons">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/></svg>
-        Buttons → Auto
+        Auto Layout
       </button>
       <button class="btn" id="flatten">
         <svg class="btn-icon" viewBox="0 0 16 16"><path d="M1.5 1.5A.5.5 0 0 1 2 1h4a.5.5 0 0 1 0 1H2.707L13.5 12.793V9a.5.5 0 0 1 1 0v5a.5.5 0 0 1-.5.5H9a.5.5 0 0 1 0-1h3.793L2.5 3.207V7a.5.5 0 0 1-1 0V2a.5.5 0 0 1 .5-.5z"/></svg>
@@ -854,10 +1074,7 @@
     </div>
     </div><!-- /toolbar-card -->
 
-    <!-- Scope + progress + message -->
-    <div class="scope-row">
-      <span id="scopeBadge" class="badge badge-blue" style="display:none"></span>
-    </div>
+    <!-- Progress -->
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-meta">
         <span id="progressLabel">Running audit…</span>
@@ -867,18 +1084,39 @@
     </div>
     <div id="msgBar" class="msg-bar"></div>
 
-    <!-- Stats -->
-    <div id="statsGrid" class="stats-grid"></div>
-
-    <!-- Summary row -->
-    <div class="summary-row">
-      <span id="totalBadge" class="badge badge-gray">0 total issues</span>
-      <span id="actionableBadge" class="badge badge-gray">0 actionable</span>
-      <span id="shownBadge" class="badge badge-gray">0 shown</span>
-      <span class="ignore-note" id="ignoreNote" style="display:none"></span>
-      <button class="btn btn-sm" id="clearIgnored">Reset ignore list</button>
+    <!-- Stats section (collapsible) -->
+    <div id="statsSection">
+      <div class="stats-head" id="statsHead">
+        <span class="stats-head-title">Audit Stats</span>
+        <span id="scopeBadge" class="badge badge-blue" style="display:none"></span>
+        <span class="stats-head-line"></span>
+        <button class="btn btn-sm" id="statsChevron">Collapse</button>
+      </div>
+      <div id="statsBody">
+        <div id="statsGrid" class="stats-grid" style="margin-top:8px"></div>
+      </div>
     </div>
+
+    <!-- Issue summary section -->
+    <div id="summarySection">
+      <div class="stats-head">
+        <span class="stats-head-title">Issue Summary</span>
+        <span class="stats-head-line"></span>
+      </div>
+      <div class="summary-row">
+        <span id="totalBadge" class="badge badge-gray">0 total issues</span>
+        <span id="actionableBadge" class="badge badge-gray">0 actionable</span>
+        <span id="shownBadge" class="badge badge-gray">0 shown</span>
+        <span class="ignore-note" id="ignoreNote" style="display:none"></span>
+        <div class="summary-btn-group">
+          <button class="btn btn-sm" id="clearIgnored">Reset ignore list</button>
+          <button class="btn btn-sm" id="toggleAllGroups">Collapse All</button>
+        </div>
+      </div>
+    </div>
+
     <div id="issues" class="issue-groups"></div>
+    <div id="devNotes" class="dev-notes-wrap" style="display:none"></div>
 
   </div><!-- /auditResults -->
 </div>
@@ -889,10 +1127,10 @@
   <div class="spell-intro">
     <div class="spell-intro-title">Analyze text content</div>
     <div class="spell-intro-desc">
-      Scans all text layers in the selection or page for spelling mistakes, grammar errors,
+      Scans all text layers in the selected frame for spelling mistakes, grammar errors,
       punctuation issues, and readability concerns. All analysis runs offline — no data leaves Figma.
     </div>
-    <button class="btn btn-primary" id="spellScan">
+    <button class="btn btn-primary" id="spellScan" disabled>
       <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
       Scan Text Layers
     </button>
@@ -945,7 +1183,7 @@
       near-duplicate colors, unused styles, and unlinked text layers. Use this to
       clean up legacy files and prepare designs for handoff.
     </div>
-    <button class="btn btn-primary" id="typoClarify">
+    <button class="btn btn-primary" id="typoClarify" disabled>
       <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
       Scan File
     </button>
@@ -964,37 +1202,42 @@
   <div id="typoResults" class="typo-results" style="display:none">
 
     <!-- Summary -->
-    <div id="typoSummaryGrid" class="stats-grid" style="padding:12px 12px 4px"></div>
-
-    <!-- Design System Opportunities -->
-    <div id="typoOpportunities"></div>
-
-    <!-- Actionable Recommendations -->
-    <div id="typoRecommendations"></div>
+    <div id="typoSummaryGrid" class="stats-grid" style="padding:16px 0px"></div>
 
     <!-- ── COLORS ── -->
-    <div class="typo-section-divider">
-      <svg width="12" height="12" viewBox="0 0 16 16"><circle cx="4" cy="8" r="3" fill="var(--blue-500)"/><circle cx="12" cy="8" r="3" fill="var(--violet-600)"/><circle cx="8" cy="5" r="3" fill="var(--green-600)"/></svg>
-      Colors
-      <div class="typo-section-divider-line"></div>
+    <div class="typo-section" id="colorsSection">
+      <div class="typo-section-divider" id="colorsDivider">
+        <div class="typo-section-icon colors">
+          <svg width="12" height="12" viewBox="0 0 16 16"><circle cx="4.5" cy="8" r="2.5" fill="var(--blue-500)"/><circle cx="11.5" cy="8" r="2.5" fill="var(--violet-600)"/><circle cx="8" cy="4.5" r="2.5" fill="var(--green-600)"/></svg>
+        </div>
+        <span class="typo-section-label">Colors</span>
+        <div class="typo-section-divider-line"></div>
+        <button class="btn btn-sm" id="colorsToggle">Collapse</button>
+      </div>
+      <div class="typo-section-body">
+        <div id="typoColorStyles"></div>
+        <div id="typoLocalColors"></div>
+        <div id="typoNearDupeColors"></div>
+      </div>
     </div>
-    <div id="typoColorStyles"></div>
-    <div id="typoLocalColors"></div>
-    <div id="typoNearDupeColors"></div>
-    <div id="typoUnusedColors"></div>
 
     <!-- ── TYPOGRAPHY ── -->
-    <div class="typo-section-divider">
-      <svg width="12" height="12" viewBox="0 0 16 16"><path d="M3 2h10v2H9v9H7V4H3V2z" fill="var(--text-secondary)"/></svg>
-      Typography
-      <div class="typo-section-divider-line"></div>
+    <div class="typo-section" id="typoSection">
+      <div class="typo-section-divider" id="typoDivider">
+        <div class="typo-section-icon typo">
+          <svg width="12" height="12" viewBox="0 0 16 16"><path d="M2 3h12v2H9v8H7V5H2V3z" fill="var(--violet-600)"/></svg>
+        </div>
+        <span class="typo-section-label">Typography</span>
+        <div class="typo-section-divider-line"></div>
+        <button class="btn btn-sm" id="typoToggle">Collapse</button>
+      </div>
+      <div class="typo-section-body">
+        <div id="typoTextStyles"></div>
+        <div id="typoLocalText"></div>
+        <div id="typoDupText"></div>
+        <div id="typoFonts"></div>
+      </div>
     </div>
-    <div id="typoTextStyles"></div>
-    <div id="typoLocalText"></div>
-    <div id="typoDupText"></div>
-    <div id="typoUnusedText"></div>
-    <div id="typoScaleInfo"></div>
-    <div id="typoFonts"></div>
 
   </div>
 </div>
@@ -1005,15 +1248,37 @@
   <button class="btn btn-sm" id="closeBtn">Close</button>
 </div>
 
+<!-- Resize handles -->
+<div id="resizeEdgeRight"></div>
+<div id="resizeEdgeBottom"></div>
+<div id="resizeCorner">
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+    <circle cx="9" cy="1" r="1.2"/><circle cx="9" cy="5" r="1.2"/><circle cx="5" cy="9" r="1.2"/><circle cx="9" cy="9" r="1.2"/><circle cx="1" cy="9" r="1.2"/>
+  </svg>
+</div>
+
+<!-- ── Rules reference popup ────────────────────────────────────────────── -->
+<div class="rules-overlay" id="rulesOverlay">
+  <div class="rules-popup" role="dialog" aria-label="Audit rules reference">
+    <div class="rules-popup-head">
+      <h3>Audit Rules</h3>
+      <span class="rules-popup-count">24 rules</span>
+      <button class="rules-close-btn" id="rulesCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="rules-popup-body" id="rulesPopupBody"></div>
+  </div>
+</div>
+
 <script>
   // ── Helpers ──────────────────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
-  const AUDIT_BTNS = ['reAudit','rename','hidden','exports','buttons','flatten','outline','sections','rescan2'];
+  const AUDIT_BTNS = ['reAudit','duplicateSwitch','readyRunAudit','rename','hidden','exports','buttons','flatten','outline','sections','rescan2'];
   let ignoredAuditKeys = new Set();
   let ignoredSpellKeys = new Set();
   let auditHasRun = false;
   let hasSelection = false;
   let lastIssues = [];
+  const DEV_NOTE_TYPES = new Set(['auto-line-height', 'section-overlap', 'no-mobile-frame']);
 
   // ── Tab navigation ───────────────────────────────────────────────────────
   document.querySelectorAll('.tab').forEach(tab => {
@@ -1038,11 +1303,41 @@
     }
   }
 
-  // ── Message bar helper ───────────────────────────────────────────────────
-  function showMsg(el, text, type = 'info') {
-    if (!text) { el.className = 'msg-bar'; return; }
-    el.className = 'msg-bar visible ' + type;
-    el.textContent = text;
+  // ── Toast notification system ────────────────────────────────────────────
+  const TOAST_ICONS = {
+    success: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 8.5l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    info:    `<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.5v3.5M8 5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    warning: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2.5L14 13H2L8 2.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 7v2.5M8 11.5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    error:   `<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  };
+
+  function showToast(message, type, duration) {
+    if (!message) return;
+    type = type || 'info';
+    duration = (duration === undefined) ? 4500 : duration;
+    const container = $('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.innerHTML =
+      '<span class="toast-icon">' + (TOAST_ICONS[type] || TOAST_ICONS.info) + '</span>' +
+      '<span class="toast-msg">' + escHtml(message) + '</span>' +
+      '<button class="toast-x" aria-label="Dismiss"><svg width="9" height="9" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>';
+    container.insertBefore(toast, container.firstChild);
+    function dismiss() {
+      toast.classList.add('toast-out');
+      setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 260);
+    }
+    toast.querySelector('.toast-x').addEventListener('click', dismiss);
+    if (duration > 0) {
+      var t = setTimeout(dismiss, duration);
+      toast.addEventListener('mouseenter', function() { clearTimeout(t); });
+      toast.addEventListener('mouseleave', function() { t = setTimeout(dismiss, 2000); });
+    }
+  }
+
+  // ── Message bar helper (now forwards to toast) ───────────────────────────
+  function showMsg(el, text, type) {
+    if (text) showToast(text, type || 'info');
   }
   function autoType(text) {
     if (!text) return 'info';
@@ -1072,10 +1367,12 @@
     'missing-export':'assets','flatten-vectors':'assets','strokes-found':'assets',
     'hidden-layer':'cleanup','line-object':'cleanup','mask-found':'cleanup','empty-group':'cleanup',
     // v17
-    'text-overflow':'accuracy','auto-line-height':'accuracy','near-dupe-spacing':'accuracy',
+    'text-overflow':'accuracy','auto-line-height':'accuracy',
     'section-overlap':'accuracy','missing-font':'accuracy',
     'no-mobile-frame':'accuracy','interactive-no-states':'accuracy',
-    'multiple-fonts':'styles'
+    'multiple-fonts':'styles',
+    'section-spacing-inconsistency':'accuracy',
+    'image-fit-mode':'assets'
   };
 
   function sevHtml(sev) {
@@ -1121,18 +1418,60 @@
   }
 
   function updateSummaryBadges() {
-    const total = lastIssues.length;
-    const shown = lastIssues.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`)).length;
-    const actionable = lastIssues.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`) && i.actionable).length;
+    const errors = lastIssues.filter(i => !DEV_NOTE_TYPES.has(i.type));
+    const total = errors.length;
+    const shown = errors.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`)).length;
+    const actionable = errors.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`) && i.actionable).length;
     const tb = $('totalBadge'), ab = $('actionableBadge'), sb = $('shownBadge');
-    if (tb) { tb.textContent = total + ' total issue' + (total !== 1 ? 's' : ''); tb.className = 'badge ' + (total > 0 ? 'badge-red' : 'badge-gray'); }
+    if (tb) { tb.textContent = total + ' issue' + (total !== 1 ? 's' : ''); tb.className = 'badge ' + (total > 0 ? 'badge-red' : 'badge-gray'); }
     if (ab) { ab.textContent = actionable + ' actionable'; ab.className = 'badge ' + (actionable > 0 ? 'badge-red' : 'badge-gray'); }
     if (sb) { sb.textContent = shown + ' shown'; sb.className = 'badge badge-gray'; }
     const ign = $('ignoreNote');
     if (ign) { ign.textContent = ignoredAuditKeys.size ? `${ignoredAuditKeys.size} ignored` : ''; ign.style.display = ignoredAuditKeys.size ? '' : 'none'; }
     $('footerNote').textContent = total
-      ? `${total} total issue${total > 1 ? 's' : ''} — ${shown} shown${ignoredAuditKeys.size ? ` (${ignoredAuditKeys.size} hidden)` : ''}`
+      ? `${total} issue${total > 1 ? 's' : ''} — ${shown} shown${ignoredAuditKeys.size ? ` (${ignoredAuditKeys.size} hidden)` : ''}`
       : 'No issues found. File looks clean.';
+  }
+
+  function renderDevNotes(container, issues) {
+    if (!issues.length) { container.style.display = 'none'; return; }
+    container.style.display = '';
+    container.innerHTML = `<div class="dev-notes-group collapsed">
+      <div class="dev-notes-head">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="var(--blue-600)" style="flex-shrink:0">
+          <path d="M5.5 2A1.5 1.5 0 0 0 4 3.5v9A1.5 1.5 0 0 0 5.5 14h5a1.5 1.5 0 0 0 1.5-1.5V6.5L9 2H5.5zM9 3l2.5 3H9V3zM5 5.5A.5.5 0 0 1 5.5 5h2a.5.5 0 0 1 0 1h-2A.5.5 0 0 1 5 5.5zm0 2A.5.5 0 0 1 5.5 7h5a.5.5 0 0 1 0 1h-5A.5.5 0 0 1 5 7.5zm0 2A.5.5 0 0 1 5.5 9h5a.5.5 0 0 1 0 1h-5A.5.5 0 0 1 5 9.5zm0 2A.5.5 0 0 1 5.5 11h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+        <span class="dev-notes-title">Developer Handoff Notes</span>
+        <span class="dev-notes-count">${issues.length}</span>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="dev-notes-desc">These text layers use AUTO line-height — not a design error, but developers need an explicit pixel value to implement the design accurately.</div>
+      <div class="dev-note-list">${issues.map(i => {
+        const parts = (i.path || '').split('/');
+        const name = parts.pop() || 'Text layer';
+        const path = parts.join(' › ') || '';
+        const fs = i.fontSize != null ? Math.round(i.fontSize) : null;
+        const tag = fs
+          ? `${fs}px · suggest ${Math.round(fs * 1.4)}–${Math.round(fs * 1.5)}px`
+          : 'AUTO line-height';
+        return `<div class="dev-note-item">
+          <div class="dev-note-body">
+            <div class="dev-note-name">${escHtml(name)}</div>
+            ${path ? `<div class="dev-note-path">${escHtml(path)}</div>` : ''}
+          </div>
+          <span class="dev-note-tag">${escHtml(tag)}</span>
+          <button class="btn btn-sm" style="flex-shrink:0" data-dev-focus="${escHtml(i.nodeId)}">Focus</button>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+    container.querySelector('.dev-notes-head').addEventListener('click', () => {
+      container.querySelector('.dev-notes-group').classList.toggle('collapsed');
+    });
+    container.querySelectorAll('[data-dev-focus]').forEach(b =>
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        parent.postMessage({ pluginMessage: { type: 'focus-node', nodeId: b.dataset.devFocus } }, '*');
+      }));
   }
 
   function removeSingleIssue(nodeId, issueType) {
@@ -1251,32 +1590,55 @@
       { l:'Line separators',     v:s.lineObjects,              cat:'cleanup' },
       // v17 new stats
       { l:'Text overflow',       v:s.textOverflow,             cat:'accuracy' },
-      { l:'Auto line-height',    v:s.autoLineHeight,           cat:'accuracy' },
+      { l:'Auto line-height',    v:s.autoLineHeight,           cat:'devnote' },
       { l:'Missing fonts',       v:s.missingFonts,             cat:'accuracy' },
-      { l:'Section overlaps',    v:s.sectionOverlaps,          cat:'accuracy' },
-      { l:'Spacing inconsistency',v:s.nearDupSpacing,          cat:'accuracy' },
-      { l:'Interactive w/o states',v:s.interactivePatterns,    cat:'accuracy' }
+      { l:'Section overlaps',    v:s.sectionOverlaps,          cat:'devnote' },
+
+
+      { l:'Section padding',       v:s.sectionPaddingIssues,  cat:'accuracy' },
+      { l:'Image fit issues',      v:s.imageFitMode,          cat:'assets' }
     ];
     $('statsGrid').innerHTML = statDefs.map(({ l, v, sub, cat }) => {
       const cls = cat ? `cat-${cat}` : (v == null ? 'muted' : v > 0 ? 'bad' : 'ok');
-      return `<div class="stat-card">
+      const linkCat = (cat && cat !== 'devnote') ? cat : null;
+      return `<div class="stat-card"${linkCat ? ` data-link-cat="${linkCat}"` : ''}>
         <div class="stat-val ${cls}">${v != null ? v : '–'}</div>
         <div class="stat-lbl">${l}</div>
         ${sub ? `<div class="stat-sub">${sub}</div>` : ''}
       </div>`;
     }).join('');
+    $('statsGrid').querySelectorAll('[data-link-cat]').forEach(card => {
+      card.addEventListener('click', () => {
+        const cat = card.dataset.linkCat;
+        // Switch to audit tab
+        document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        const auditTab = document.querySelector('.tab[data-tab="audit"]');
+        if (auditTab) { auditTab.classList.add('active'); auditTab.setAttribute('aria-selected','true'); }
+        const auditPanel = $('tab-audit');
+        if (auditPanel) auditPanel.classList.add('active');
+        // Expand and scroll to the accordion group
+        const group = $('issues') && $('issues').querySelector(`.issue-group[data-cat="${cat}"]`);
+        if (group) {
+          group.classList.remove('collapsed');
+          setTimeout(() => group.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
+      });
+    });
 
-    // Issues
+    // Issues — split into errors (shown in accordion) and dev notes (shown separately)
     lastIssues = report.issues || [];
-    const filtered = lastIssues.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`));
+    const allActive = lastIssues.filter(i => !ignoredAuditKeys.has(`${i.nodeId}:${i.type}`));
+    const filtered  = allActive.filter(i => !DEV_NOTE_TYPES.has(i.type));
+    const devNoteIssues = allActive.filter(i => DEV_NOTE_TYPES.has(i.type));
 
     if (!filtered.length) {
       $('issues').innerHTML = `<div style="border:1px dashed var(--border-strong);border-radius:var(--radius-lg);text-align:center;padding:36px 20px 28px;background:var(--surface);">
         <div style="width:44px;height:44px;border-radius:50%;background:var(--blue-50);border:2px solid var(--blue-100);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4.5 10.5l4 4 7-8" stroke="var(--blue-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">No issues yet</div>
-        <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;max-width:260px;margin:0 auto;">Run an audit to scan the current page or a selection for WordPress-handoff issues.</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">No issues found</div>
+        <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;max-width:260px;margin:0 auto;">File looks clean. Check Developer Handoff Notes below for any typography info.</div>
       </div>`;
     } else {
       const grouped = groupBy(filtered);
@@ -1288,19 +1650,40 @@
       );
     }
 
+    renderDevNotes($('devNotes'), devNoteIssues);
     updateSummaryBadges();
   }
 
-  // ── Empty / ready state button wiring ───────────────────────────────────
-  $('readyRunAudit').onclick = () => {
+  // ── Stats section collapse ───────────────────────────────────────────────
+  $('statsHead').addEventListener('click', () => {
+    const collapsed = $('statsSection').classList.toggle('collapsed');
+    $('statsChevron').textContent = collapsed ? 'Expand' : 'Collapse';
+  });
+
+  // ── Revision copy state ──────────────────────────────────────────────────
+  let revisionCopyNames = [];
+
+  function updateRevisionBanner() { /* removed — toast handles this */ }
+
+  function startAudit(createRevision) {
+    revisionCopyNames = [];
     auditHasRun = true;
     $('auditReady').style.display = 'none';
     $('auditResults').style.display = '';
-    parent.postMessage({ pluginMessage:{ type:'run-audit' } }, '*');
-  };
+    updateRevisionBanner();
+    parent.postMessage({ pluginMessage: { type: 'run-audit', createRevision: !!createRevision } }, '*');
+  }
+
+  // ── Empty / ready state button wiring ───────────────────────────────────
+  $('readyRunAudit').onclick = () => startAudit($('revisionCopyCheck').checked);
 
   // ── Audit button wiring ──────────────────────────────────────────────────
-  $('reAudit').onclick  = () => parent.postMessage({ pluginMessage:{ type:'run-audit' } }, '*');
+  $('reAudit').onclick        = () => parent.postMessage({ pluginMessage:{ type:'run-audit' } }, '*');
+  $('duplicateSwitch').onclick = () => {
+    revisionCopyNames = [];
+    updateRevisionBanner();
+    parent.postMessage({ pluginMessage:{ type:'run-audit', createRevision: true } }, '*');
+  };
   $('rename').onclick   = () => parent.postMessage({ pluginMessage:{ type:'rename-generic' } }, '*');
   $('hidden').onclick  = () => parent.postMessage({ pluginMessage:{ type:'remove-hidden' } }, '*');
   $('exports').onclick = () => parent.postMessage({ pluginMessage:{ type:'add-export-settings' } }, '*');
@@ -1312,25 +1695,70 @@
     ignoredAuditKeys.clear();
     parent.postMessage({ pluginMessage:{ type:'clear-ignored' } }, '*');
   };
+  $('toggleAllGroups').addEventListener('click', () => {
+    const groups = Array.from($('issues').querySelectorAll('.issue-group'));
+    const anyExpanded = groups.some(g => !g.classList.contains('collapsed'));
+    groups.forEach(g => anyExpanded ? g.classList.add('collapsed') : g.classList.remove('collapsed'));
+    $('toggleAllGroups').textContent = anyExpanded ? 'Expand All' : 'Collapse All';
+  });
+
   $('closeBtn').onclick   = () => parent.postMessage({ pluginMessage:{ type:'close' } }, '*');
   $('rescan2').onclick     = () => parent.postMessage({ pluginMessage:{ type:'run-audit' } }, '*');
 
+  // ── Resize handles ───────────────────────────────────────────────────────
+  const _rz = { on: false, mode: 'both', x0: 0, y0: 0, w0: 0, h0: 0 };
+  const MIN_W = 400, MAX_W = 1200, MIN_H = 400, MAX_H = 960;
+  function _rzStart(e, mode) {
+    _rz.on = true; _rz.mode = mode;
+    _rz.x0 = e.clientX; _rz.y0 = e.clientY;
+    _rz.w0 = window.innerWidth; _rz.h0 = window.innerHeight;
+    e.preventDefault();
+  }
+  $('resizeCorner').addEventListener('mousedown', e => _rzStart(e, 'both'));
+  $('resizeEdgeRight').addEventListener('mousedown', e => _rzStart(e, 'width'));
+  $('resizeEdgeBottom').addEventListener('mousedown', e => _rzStart(e, 'height'));
+  window.addEventListener('mousemove', e => {
+    if (!_rz.on) return;
+    const dx = e.clientX - _rz.x0, dy = e.clientY - _rz.y0;
+    const w = (_rz.mode !== 'height') ? Math.round(Math.min(MAX_W, Math.max(MIN_W, _rz.w0 + dx))) : _rz.w0;
+    const h = (_rz.mode !== 'width')  ? Math.round(Math.min(MAX_H, Math.max(MIN_H, _rz.h0 + dy))) : _rz.h0;
+    parent.postMessage({ pluginMessage: { type: 'resize', width: w, height: h } }, '*');
+  });
+  window.addEventListener('mouseup', () => { _rz.on = false; });
+
   // ── Typography & Colors tab ──────────────────────────────────────────────
+  [['colorsDivider','colorsSection','colorsToggle'],['typoDivider','typoSection','typoToggle']].forEach(([divId, secId, btnId]) => {
+    $(divId).addEventListener('click', () => {
+      const collapsed = $(secId).classList.toggle('collapsed');
+      $(btnId).textContent = collapsed ? 'Expand' : 'Collapse';
+    });
+  });
+
   $('typoClarify').onclick = () => {
     $('typoClarify').disabled = true;
     $('typoProgressWrap').classList.add('active');
-    $('typoMsgBar').className = 'msg-bar';
     parent.postMessage({ pluginMessage: { type: 'collect-typo-colors' } }, '*');
   };
 
-  function renderTypoBlock(id, title, count, bodyHtml, collapsed) {
-    const badgeCls = count === 0 ? 'badge badge-gray' : 'badge badge-red';
+  // type: 'info' (blue badge always) | 'issue' (red when >0, green when 0)
+  function renderTypoBlock(id, title, subtitle, iconSvg, count, bodyHtml, type, collapsed) {
     const el = $(id);
     if (!el) return;
-    el.innerHTML = `<div class="typo-block${collapsed ? ' collapsed' : ''}">
+    const isIssue = type === 'issue';
+    const hasProblems = isIssue && count > 0;
+    const badgeCls = 'badge ' + (isIssue
+      ? (count > 0 ? 'badge-typo-issue' : 'badge-typo-ok')
+      : 'badge-typo-info');
+    const badgeLabel = isIssue && count === 0 ? '✓ 0' : count;
+    const iconCls = 'typo-block-icon ' + (isIssue ? (count > 0 ? 'issue' : 'ok') : 'info');
+    el.innerHTML = `<div class="typo-block${collapsed ? ' collapsed' : ''}${hasProblems ? ' issue-active' : ''}">
       <div class="typo-block-head">
-        <span class="typo-block-title">${title}</span>
-        <span class="${badgeCls}">${count}</span>
+        <div class="${iconCls}">${iconSvg}</div>
+        <div class="typo-block-meta">
+          <div class="typo-block-title">${title}</div>
+          ${subtitle ? `<div class="typo-block-subtitle">${subtitle}</div>` : ''}
+        </div>
+        <span class="${badgeCls}">${badgeLabel}</span>
         <span class="chevron">▾</span>
       </div>
       <div class="typo-block-body">${bodyHtml}</div>
@@ -1351,13 +1779,22 @@
 
   function renderColorStyleRow(s) {
     const opacity = s.opacity < 0.99 ? ` <span class="tc-muted">/ ${Math.round(s.opacity*100)}%</span>` : '';
+    const actualBadges = (s.actualContrasts && s.actualContrasts.length)
+      ? s.actualContrasts.map(ac => {
+          const swatch = `<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${escHtml(ac.hex)};border:1px solid rgba(0,0,0,.15);vertical-align:middle;margin-right:2px"></span>`;
+          return wcagBadge(swatch, ac.ratio, `On ${escHtml(ac.hex)} (design bg)`);
+        }).join('')
+      : '';
     return `<tr>
       <td style="width:28px;padding:5px 8px 5px 12px"><div class="color-swatch" style="background:${escHtml(s.hex)};opacity:${s.opacity}" title="${escHtml(s.hex)}"></div></td>
       <td class="tc-name" title="${escHtml(s.name)}">${escHtml(s.name)}</td>
       <td class="tc-mono">${escHtml(s.hex)}${opacity}</td>
       <td><div class="wcag-cell">
-        ${wcagBadge('⬜', s.contrastWhite, 'On white')}
-        ${wcagBadge('⬛', s.contrastBlack, 'On black')}
+        ${actualBadges
+          ? `<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:3px">${actualBadges}</div>
+             <div style="font-size:9px;color:var(--text-muted);margin-bottom:2px">vs design bg</div>
+             <div style="display:flex;gap:3px">${wcagBadge('⬜', s.contrastWhite, 'On white')}${wcagBadge('⬛', s.contrastBlack, 'On black')}</div>`
+          : `${wcagBadge('⬜', s.contrastWhite, 'On white')}${wcagBadge('⬛', s.contrastBlack, 'On black')}`}
       </div></td>
       <td>${s.usageCount>0?`<span class="badge badge-blue">${s.usageCount}×</span>`:'<span class="badge badge-gray">0×</span>'}</td>
     </tr>`;
@@ -1379,11 +1816,16 @@
   function renderLocalColorRow(c) {
     const suggest = c.count >= 3;
     const opacity = c.opacity < 0.99 ? ` <span class="tc-muted">/ ${Math.round(c.opacity*100)}%</span>` : '';
+    const focusId = c.exNodes && c.exNodes.length ? c.exNodes[0].id : '';
+    const focusBtn = focusId
+      ? `<button class="btn btn-sm" data-focus="${escHtml(focusId)}" style="padding:2px 7px;font-size:10px" title="${escHtml(c.exNodes[0].name)}">Focus</button>`
+      : '';
     return `<tr>
       <td style="width:28px;padding:5px 8px 5px 12px"><div class="color-swatch" style="background:${escHtml(c.hex)};opacity:${c.opacity}" title="${escHtml(c.hex)}"></div></td>
       <td class="tc-mono">${escHtml(c.hex)}${opacity}</td>
       <td colspan="2">${suggest?'<span class="typo-suggest" style="font-size:11px">→ Consider creating a Color Style</span>':''}</td>
       <td><span class="badge ${suggest?'badge-amber':'badge-gray'}">${c.count}×</span></td>
+      <td>${focusBtn}</td>
     </tr>`;
   }
 
@@ -1394,6 +1836,7 @@
         <th>Hex Value</th>
         <th colspan="2">Suggestion</th>
         <th>Uses</th>
+        <th></th>
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>`;
@@ -1440,7 +1883,7 @@
     </tr>`;
   }
 
-  function textStyleTable(rowsHtml) {
+  function textStyleTable(rowsHtml, showFocus) {
     return `<table class="tc-table">
       <thead><tr>
         <th>Style Name</th>
@@ -1449,6 +1892,7 @@
         <th>Weight</th>
         <th>Line-H</th>
         <th>Uses</th>
+        ${showFocus ? '<th></th>' : ''}
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>`;
@@ -1461,15 +1905,20 @@
     const status = suggest
       ? `<span class="badge badge-amber">${c.count}×</span> <span class="typo-suggest" style="font-size:10px">→ Create style</span>`
       : `<span class="badge badge-gray">${c.count}×</span>`;
+    const focusId = c.exNodes && c.exNodes.length ? c.exNodes[0].id : '';
+    const focusBtn = focusId
+      ? `<button class="btn btn-sm" data-focus="${escHtml(focusId)}" style="padding:2px 7px;font-size:10px" title="${escHtml(c.exNodes[0].name)}">Focus</button>`
+      : '';
     return `<tr>
-      <td class="tc-name" style="max-width:130px">
+      <td class="tc-name" style="max-width:120px">
         <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'${escHtml(c.fontFamily)}',sans-serif;font-size:${previewSize}px">${escHtml(c.fontFamily)}</div>
       </td>
-      <td class="tc-muted" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.fontFamily)}</td>
+      <td class="tc-muted" style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.fontFamily)}</td>
       <td class="tc-num">${c.fontSize}px</td>
       <td class="tc-num">${escHtml(c.fontStyle)}</td>
       <td class="tc-num">${lh}</td>
       <td>${status}</td>
+      <td>${focusBtn}</td>
     </tr>`;
   }
 
@@ -1519,42 +1968,14 @@
       h.addEventListener('click', () => h.closest('.typo-block').classList.toggle('collapsed')));
   }
 
-  function renderOpportunities(ops) {
-    const el = $('typoOpportunities');
-    if (!el) return;
-    if (!ops || ops.length === 0) {
-      el.innerHTML = `<div class="typo-block">
-        <div class="typo-block-head"><span class="typo-block-title">Design System Opportunities</span><span class="badge badge-gray">0</span><span class="chevron">▾</span></div>
-        <div class="typo-block-body"><div class="opp-empty">✓ No cleanup opportunities found. Your file is well-organized.</div></div>
-      </div>`;
-      el.querySelector('.typo-block-head').addEventListener('click', () => el.querySelector('.typo-block').classList.toggle('collapsed'));
-      return;
-    }
-    const P_LABEL = { 1:'!', 2:'2', 3:'3' };
-    const P_CLASS = { 1:'opp-p1', 2:'opp-p2', 3:'opp-p3' };
-    el.innerHTML = `<div class="typo-block">
-      <div class="typo-block-head">
-        <span class="typo-block-title">Design System Opportunities</span>
-        <span class="badge badge-amber">${ops.length}</span>
-        <span class="chevron">▾</span>
-      </div>
-      <div class="typo-block-body">
-        <div class="typo-info-banner">A prioritized checklist for cleaning up and strengthening your design system. Start from the top.</div>
-        <div class="opp-list">
-          ${ops.map(o => `<div class="opp-item">
-            <div class="opp-badge ${P_CLASS[o.p]||'opp-p3'}">${P_LABEL[o.p]||o.p}</div>
-            <div>${escHtml(o.text)}</div>
-          </div>`).join('')}
-        </div>
-      </div>
-    </div>`;
-    el.querySelector('.typo-block-head').addEventListener('click', () => el.querySelector('.typo-block').classList.toggle('collapsed'));
-  }
 
   function renderTypoColors(data) {
     $('typoClarify').disabled = false;
     $('typoProgressWrap').classList.remove('active');
     $('typoResults').style.display = '';
+    ['colorsSection','typoSection'].forEach(id => $(id).classList.remove('collapsed'));
+    $('colorsToggle').textContent = 'Collapse';
+    $('typoToggle').textContent   = 'Collapse';
     const s = data.summary;
 
     // Summary — 6 cards
@@ -1571,76 +1992,95 @@
       <div class="stat-sub">${sub}</div>
     </div>`).join('');
 
-    renderOpportunities(data.opportunities || []);
-    renderRecommendations(data.recommendations || []);
+
+    // ── SVG icons ────────────────────────────────────────────────────────────
+    const TICON = {
+      palette:  `<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="9" r="2.5" fill="var(--blue-500)"/><circle cx="12" cy="9" r="2.5" fill="var(--violet-500)"/><circle cx="8" cy="5" r="2.5" fill="var(--green-600)"/></svg>`,
+      unlink:   `<svg width="13" height="13" viewBox="0 0 16 16" fill="var(--red-500)"><path d="M6.5 3.5 5 5l2 2-1 1-2-2L2.5 7.5A2.5 2.5 0 1 0 6 11l1.5-1.5-1-1 1-1 1 1L10 8a2.5 2.5 0 0 0-3.5-4.5zM10 5l1.5-1.5a2.5 2.5 0 1 1 3.5 3.5L13.5 8.5l-1-1 1-1A1.5 1.5 0 0 0 11 5l-1 1-1-1z"/></svg>`,
+      dupe:     `<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="8" r="4" stroke="var(--amber-500)" stroke-width="1.5" fill="var(--amber-50)"/><circle cx="10.5" cy="8" r="4" stroke="var(--red-400)" stroke-width="1.5" fill="var(--red-50)" opacity=".8"/></svg>`,
+      archive:  `<svg width="13" height="13" viewBox="0 0 16 16" fill="var(--text-muted)"><path d="M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1-1-1V3zm1 2v7h10V5H3zm1-2v1h8V3H4zm2 4h4v1H6V7z"/></svg>`,
+      text:     `<svg width="13" height="13" viewBox="0 0 16 16" fill="var(--blue-600)"><path d="M2 3h12v2H9v8H7V5H2V3z"/></svg>`,
+      textlink: `<svg width="13" height="13" viewBox="0 0 16 16" fill="var(--amber-600)"><path d="M2 3h7v1.5H2V3zm0 3h5v1.5H2V6zm0 3h4v1.5H2V9zm8-4 1.5 1.5L13 5l1 1-1.5 1.5L14 9l-1 1-1.5-1.5L10 10l-1-1 1.5-1.5L9 6l1-1z"/></svg>`,
+      copy:     `<svg width="13" height="13" viewBox="0 0 16 16" fill="var(--violet-500)"><path d="M5 3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H5zm0-1h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M3 5H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1H3V5z"/></svg>`,
+      bars:     `<svg width="13" height="13" viewBox="0 0 16 16" fill="var(--blue-500)"><rect x="1" y="9" width="3" height="5" rx="1"/><rect x="6" y="5" width="3" height="9" rx="1"/><rect x="11" y="2" width="3" height="12" rx="1"/></svg>`,
+      fontA:    `<svg width="13" height="13" viewBox="0 0 16 16" fill="var(--violet-600)"><path d="M6 2h4l4 12h-2.5l-1-3H5.5l-1 3H2L6 2zm2 2L6.3 9h3.4L8 4z"/></svg>`,
+    };
 
     // ── Colors ──────────────────────────────────────────────────────────────
-    renderTypoBlock('typoColorStyles', 'Color Styles', data.colorStyles.length,
-      data.colorStyles.length === 0
-        ? '<div class="typo-empty">No color styles defined. Open the Styles panel → "+" to create your first style.</div>'
-        : colorTable(data.colorStyles.map(renderColorStyleRow).join('')));
+    const unusedColorCount = data.unusedColorStyles.length;
+    const usedColorCount   = data.colorStyles.length - unusedColorCount;
+    const colorStylesSub   = data.colorStyles.length === 0 ? 'None defined yet'
+      : `${usedColorCount} used · ${unusedColorCount} unused`;
+    const colorStylesBody  = data.colorStyles.length === 0
+      ? '<div class="typo-empty">No color styles defined. Open the Styles panel → "+" to create your first style.</div>'
+      : colorTable(data.colorStyles.map(renderColorStyleRow).join(''))
+        + (unusedColorCount > 0
+          ? `<div class="typo-inner-divider"><span>Unused</span><div class="typo-inner-divider-line"></div><span>${unusedColorCount}</span></div>
+             ${colorTable(data.unusedColorStyles.map(renderColorStyleRow).join(''))}`
+          : '<div class="typo-inner-divider"><span>Unused</span><div class="typo-inner-divider-line"></div><span class="typo-ok">✓ None</span></div>');
+    renderTypoBlock('typoColorStyles', 'Color Styles', colorStylesSub, TICON.palette, data.colorStyles.length,
+      colorStylesBody, 'info');
 
     const localClipped = data.localColors.slice(0, 40);
-    renderTypoBlock('typoLocalColors', 'Unlinked Colors', data.localColors.length,
+    renderTypoBlock('typoLocalColors', 'Unlinked Colors', 'Fills without a Color Style', TICON.unlink, data.localColors.length,
       data.localColors.length === 0
         ? '<div class="typo-empty typo-ok">✓ All fill colors are linked to Color Styles.</div>'
-        : `<div class="typo-info-banner">Applied directly without a Color Style. <strong>Amber</strong> = used 3+ times → candidate for a new style.</div>
-           ${localColorTable(localClipped.map(renderLocalColorRow).join(''))}
-           ${data.localColors.length > 40 ? `<div class="typo-more">Showing top 40 of ${data.localColors.length} unique colors.</div>` : ''}`);
+        : `${localColorTable(localClipped.map(renderLocalColorRow).join(''))}
+           ${data.localColors.length > 40 ? `<div class="typo-more">Showing top 40 of ${data.localColors.length} unique colors.</div>` : ''}`,
+      'issue');
 
-    renderTypoBlock('typoNearDupeColors', 'Near-Duplicate Colors', data.nearDupeColorGroups.length,
+    renderTypoBlock('typoNearDupeColors', 'Near-Duplicate Colors', 'Visually similar — consider merging', TICON.dupe, data.nearDupeColorGroups.length,
       data.nearDupeColorGroups.length === 0
         ? '<div class="typo-empty typo-ok">✓ No near-duplicate colors detected.</div>'
-        : `<div class="typo-info-banner">Visually very similar colors. Use <strong>Merge colors →</strong> to consolidate each group into one Color Style.</div>
-           ${data.nearDupeColorGroups.map((g,i)=>renderDupeColorGroup(g,i)).join('')}`);
+        : `${data.nearDupeColorGroups.map((g,i)=>renderDupeColorGroup(g,i)).join('')}`,
+      'issue');
 
-    renderTypoBlock('typoUnusedColors', 'Unused Color Styles', data.unusedColorStyles.length,
-      data.unusedColorStyles.length === 0
-        ? '<div class="typo-empty typo-ok">✓ All color styles are in use on this page.</div>'
-        : `<div class="typo-info-banner">Defined but not applied on this page. Safe to remove if not needed elsewhere.</div>
-           ${colorTable(data.unusedColorStyles.map(renderColorStyleRow).join(''))}`, true);
 
     // ── Typography ───────────────────────────────────────────────────────────
-    renderTypoBlock('typoTextStyles', 'Text Styles', data.textStyles.length,
-      data.textStyles.length === 0
-        ? '<div class="typo-empty">No text styles defined. Select a text layer → Style icon → "+" to create one.</div>'
-        : textStyleTable(data.textStyles.map(s=>renderTextStyleRow(s)).join('')));
+    const unusedTextCount = data.unusedTextStyles.length;
+    const usedTextCount   = data.textStyles.length - unusedTextCount;
+    const textStylesSub   = data.textStyles.length === 0 ? 'None defined yet'
+      : `${usedTextCount} used · ${unusedTextCount} unused`;
+    const textStylesBody  = data.textStyles.length === 0
+      ? '<div class="typo-empty">No text styles defined. Select a text layer → Style icon → "+" to create one.</div>'
+      : textStyleTable(data.textStyles.map(s => renderTextStyleRow(s)).join(''))
+        + (unusedTextCount > 0
+          ? `<div class="typo-inner-divider"><span>Unused</span><div class="typo-inner-divider-line"></div><span>${unusedTextCount}</span></div>
+             ${textStyleTable(data.unusedTextStyles.map(s=>renderTextStyleRow(s,'<span class="badge badge-gray">Unused</span>')).join(''))}`
+          : '<div class="typo-inner-divider"><span>Unused</span><div class="typo-inner-divider-line"></div><span class="typo-ok">✓ None</span></div>');
+    renderTypoBlock('typoTextStyles', 'Text Styles', textStylesSub, TICON.text, data.textStyles.length,
+      textStylesBody, 'info');
 
     const localTextClipped = data.localTextCombos.slice(0, 40);
-    renderTypoBlock('typoLocalText', 'Unlinked Text Layers', data.localTextCombos.length,
+    renderTypoBlock('typoLocalText', 'Unlinked Text Layers', 'Text not linked to a Text Style', TICON.textlink, data.localTextCombos.length,
       data.localTextCombos.length === 0
         ? '<div class="typo-empty typo-ok">✓ All text layers are linked to Text Styles.</div>'
-        : `<div class="typo-info-banner">Font combinations without a Text Style. <strong>Amber</strong> = 3+ uses — create a style for these first.</div>
-           ${textStyleTable(localTextClipped.map(renderLocalTextRow).join(''))}
-           ${data.localTextCombos.length > 40 ? `<div class="typo-more">Showing top 40 of ${data.localTextCombos.length} combinations.</div>` : ''}`);
+        : `${textStyleTable(localTextClipped.map(renderLocalTextRow).join(''), true)}
+           ${data.localTextCombos.length > 40 ? `<div class="typo-more">Showing top 40 of ${data.localTextCombos.length} combinations.</div>` : ''}`,
+      'issue');
 
-    renderTypoBlock('typoDupText', 'Duplicate Text Styles', data.duplicateTextGroups.length,
+    renderTypoBlock('typoDupText', 'Duplicate Text Styles', 'Identical font, size & line-height', TICON.copy, data.duplicateTextGroups.length,
       data.duplicateTextGroups.length === 0
         ? '<div class="typo-empty typo-ok">✓ No duplicate text styles detected.</div>'
-        : `<div class="typo-info-banner">These styles share identical font, size, and line-height. Merge into one style in Figma's Styles panel.</div>
-           ${data.duplicateTextGroups.map(g=>`<div class="typo-dup-group">${g.map(n=>`<span class="typo-style-chip">${escHtml(n)}</span>`).join('<span class="typo-dup-arrow"> ≡ </span>')}</div>`).join('')}`, true);
-
-    renderTypoBlock('typoUnusedText', 'Unused Text Styles', data.unusedTextStyles.length,
-      data.unusedTextStyles.length === 0
-        ? '<div class="typo-empty typo-ok">✓ All text styles are applied on this page.</div>'
-        : `<div class="typo-info-banner">Defined but not applied to any text layer on this page. Remove or archive.</div>
-           ${textStyleTable(data.unusedTextStyles.map(s=>renderTextStyleRow(s,'<span class="badge badge-gray">Unused</span>')).join(''))}`, true);
+        : `${data.duplicateTextGroups.map(g=>`<div class="typo-dup-group">${g.map(n=>`<span class="typo-style-chip">${escHtml(n)}</span>`).join('<span class="typo-dup-arrow"> ≡ </span>')}</div>`).join('')}`,
+      'issue', true);
 
     const maxCount = data.typeSizeInfo.length ? data.typeSizeInfo.reduce((m,r)=>Math.max(m,r.count),0) : 1;
-    renderTypoBlock('typoScaleInfo', 'Font Size Usage', data.typeSizeInfo.length,
-      data.typeSizeInfo.length === 0
-        ? '<div class="typo-empty">No text layers found on this page.</div>'
-        : `<div class="typo-info-banner typo-info-neutral">Informational only — no scale is required. Spot accidental one-off sizes (⚠) and simplify if needed.</div>
-           <div class="typo-scale-table">${data.typeSizeInfo.map(r=>renderSizeBar(r, maxCount)).join('')}</div>`, true);
-
-    renderTypoBlock('typoFonts', 'Font Families', data.fontFamilies.length,
-      data.fontFamilies.length === 0
-        ? '<div class="typo-empty">No text layers found.</div>'
-        : data.fontFamilies.map(f=>`<div class="typo-font-row">
-            <div class="typo-font-name">${escHtml(f.family)}</div>
-            <div class="typo-font-styles">${f.styles.map(st=>`<span class="typo-style-chip">${escHtml(st)}</span>`).join('')}</div>
-            <div class="typo-font-count">${f.count} layer${f.count!==1?'s':''}</div>
-          </div>`).join(''));
+    const fontsBody = (data.fontFamilies.length === 0 && data.typeSizeInfo.length === 0)
+      ? '<div class="typo-empty">No text layers found.</div>'
+      : (data.fontFamilies.length > 0
+          ? data.fontFamilies.map(f=>`<div class="typo-font-row">
+              <div class="typo-font-name">${escHtml(f.family)}</div>
+              <div class="typo-font-styles">${f.styles.map(st=>`<span class="typo-style-chip">${escHtml(st)}</span>`).join('')}</div>
+              <div class="typo-font-count">${f.count} layer${f.count!==1?'s':''}</div>
+            </div>`).join('')
+          : '<div class="typo-empty">No font families found.</div>')
+        + (data.typeSizeInfo.length > 0
+          ? `<div class="typo-inner-divider"><span>Size Usage</span><div class="typo-inner-divider-line"></div><span>${data.typeSizeInfo.length} sizes</span></div>
+             <div class="typo-scale-table">${data.typeSizeInfo.map(r=>renderSizeBar(r, maxCount)).join('')}</div>`
+          : '');
+    const fontsFamilyCount = data.fontFamilies.length;
+    renderTypoBlock('typoFonts', 'Fonts', `${fontsFamilyCount} famil${fontsFamilyCount!==1?'ies':'y'} · ${data.typeSizeInfo.length} sizes`, TICON.fontA, fontsFamilyCount, fontsBody, 'info');
 
     // ── Merge button event delegation ────────────────────────────────────────
     const results = $('typoResults');
@@ -1702,6 +2142,8 @@
     if (msg.type === 'idle')  { setAuditBusy(false); return; }
     if (msg.type === 'selection-changed') {
       hasSelection = msg.count > 0;
+      $('spellScan').disabled    = !hasSelection;
+      $('typoClarify').disabled  = !hasSelection;
       if (!auditHasRun) {
         if (hasSelection) {
           const name = msg.count === 1 ? msg.names[0] : `${msg.count} items selected`;
@@ -1723,13 +2165,44 @@
         $('auditReady').style.display = 'none';
         $('auditResults').style.display = '';
       }
+      if (!msg.initial) {
+        $('statsSection').classList.remove('collapsed');
+        $('statsChevron').textContent = 'Collapse';
+        $('toggleAllGroups').textContent = 'Collapse All';
+      }
       renderReport(msg.report, msg.extraMessage || '');
+      if (!msg.initial) {
+        const issueCount = (msg.report.issues || []).filter(i => !DEV_NOTE_TYPES.has(i.type)).length;
+        showToast(
+          issueCount === 0 ? 'Audit complete — no issues found' : 'Audit complete — ' + issueCount + ' issue' + (issueCount !== 1 ? 's' : '') + ' found',
+          issueCount === 0 ? 'success' : 'warning'
+        );
+      }
       return;
     }
     if (msg.type === 'error') {
       setAuditBusy(false);
       showMsg($('msgBar'), 'Error: ' + msg.message, 'error');
       $('issues').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Error</div><div class="empty-desc">${escHtml(msg.message)}</div></div>`;
+      return;
+    }
+    if (msg.type === 'revision-created') {
+      revisionCopyNames = msg.names || [];
+      updateRevisionBanner();
+      const revNames = (msg.names || []).join(', ');
+      showToast('Duplicate created: ' + revNames, 'success');
+      showToast('Auditing: ' + revNames + ' — original frame preserved as backup.', 'info');
+      return;
+    }
+    if (msg.type === 'no-selection') {
+      setAuditBusy(false);
+      revisionCopyNames = [];
+      updateRevisionBanner();
+      auditHasRun = false;
+      $('auditResults').style.display = 'none';
+      $('auditReady').style.display = 'none';
+      $('auditEmpty').style.display = '';
+      showToast('No frame selected — select a frame on the canvas first.', 'error');
       return;
     }
     if (msg.type === 'texts-collected') { analyzeTexts(msg.texts || []); return; }
@@ -2139,6 +2612,81 @@
     showMsg($('spellMsgBar'), '', 'info');
     parent.postMessage({ pluginMessage:{ type:'collect-texts' } }, '*');
   };
+
+  // ── Rules reference popup ──────────────────────────────────────────────────
+  const RULE_CATALOG = [
+    { cat:'accuracy',  icon:'⚡', name:'Text overflow',               desc:'Text node extends past its container — will clip or reflow at runtime.' },
+    { cat:'accuracy',  icon:'⚡', name:'AUTO line-height',            desc:'AUTO metrics vary by OS; developers need an explicit px or % value.' },
+    { cat:'accuracy',  icon:'⚡', name:'Section overlaps',            desc:'Overlapping sections require fragile negative margins or z-index in CSS.' },
+    { cat:'accuracy',  icon:'⚡', name:'Missing font',                desc:'Unavailable fonts render with fallbacks that change spacing and metrics.' },
+    { cat:'accuracy',  icon:'⚡', name:'No mobile frame',             desc:'Without a mobile frame, responsive breakpoints must be guessed by developers.' },
+    { cat:'accuracy',  icon:'⚡', name:'Interactive without states',  desc:'Carousels/modals/tabs need hover, open, and active variants to implement.' },
+    { cat:'accuracy',  icon:'⚡', name:'Section spacing inconsistency',desc:'Differing section padding breaks visual rhythm and spacing tokens.' },
+    { cat:'structure', icon:'🏗', name:'Generic layer names',         desc:'Names like "Frame 47" become meaningless CSS class and component IDs.' },
+    { cat:'structure', icon:'🏗', name:'Deep nesting',                desc:'Unnecessary wrappers create complex DOM hierarchies that are hard to maintain.' },
+    { cat:'structure', icon:'🏗', name:'Background layer',            desc:'Standalone background rectangles should be fills on the parent frame.' },
+    { cat:'styles',    icon:'🎨', name:'Missing text style',          desc:'Text without a linked style forces hard-coded typography in CSS.' },
+    { cat:'styles',    icon:'🎨', name:'Missing color style',         desc:'Unlinked fills become magic hex values with no single source of truth.' },
+    { cat:'styles',    icon:'🎨', name:'Multiple font families',      desc:'More than 2 families adds load overhead and risks unintended substitutions.' },
+    { cat:'buttons',   icon:'⬛', name:'Button without Auto Layout',  desc:'Fixed-width buttons break when label text changes length.' },
+    { cat:'buttons',   icon:'⬛', name:'Section without Auto Layout', desc:'Absolute child positions are fragile and non-responsive.' },
+    { cat:'buttons',   icon:'⬛', name:'Fixed-height section',        desc:'Fixed height clips CMS content when text length varies.' },
+    { cat:'assets',    icon:'🖼', name:'Vectors to flatten',          desc:'Multi-path icon groups export as complex nested SVG paths.' },
+    { cat:'assets',    icon:'🖼', name:'Thin strokes on vectors',     desc:'Thin strokes are brittle in CSS at varying pixel densities.' },
+    { cat:'assets',    icon:'🖼', name:'Missing export settings',     desc:'Assets without export settings cannot be automated in handoff pipelines.' },
+    { cat:'assets',    icon:'🖼', name:'Image not set to Fill',       desc:'Fit mode letterboxes; Crop mode pan values are hard to replicate in CSS.' },
+    { cat:'cleanup',   icon:'🧹', name:'Hidden layers',               desc:'Hidden layers bloat the file and confuse developers inspecting the design.' },
+    { cat:'cleanup',   icon:'🧹', name:'Line objects',                desc:'LINE nodes export poorly; use container border-bottom instead.' },
+    { cat:'cleanup',   icon:'🧹', name:'Masks',                       desc:'Masks should be replaced with Image Fill for a simpler DOM structure.' },
+    { cat:'cleanup',   icon:'🧹', name:'Empty groups',                desc:'Leftover empty containers clutter the layer panel.' },
+  ];
+  const RULE_CAT_META = {
+    accuracy:  { label:'Accuracy & performance', dot:'#dc2626' },
+    structure: { label:'Structure & hierarchy',  dot:'#2563eb' },
+    styles:    { label:'Styles & variables',     dot:'#7c3aed' },
+    buttons:   { label:'Buttons & sections',     dot:'#d97706' },
+    assets:    { label:'Assets & vectors',       dot:'#16a34a' },
+    cleanup:   { label:'Cleanup & separators',   dot:'#6b7280' },
+  };
+  function buildRulesPopup() {
+    const grouped = {};
+    RULE_CATALOG.forEach(function(r) { (grouped[r.cat] = grouped[r.cat] || []).push(r); });
+    const order = ['accuracy','structure','styles','buttons','assets','cleanup'];
+    return order.filter(function(c) { return grouped[c]; }).map(function(cat) {
+      const meta = RULE_CAT_META[cat];
+      const rows = grouped[cat].map(function(r) {
+        return `<div class="rule-row">
+          <div class="rule-row-text">
+            <div class="rule-row-name">${r.name}</div>
+            <div class="rule-row-desc">${r.desc}</div>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="rules-cat-section">
+        <div class="rules-cat-label">
+          <span class="rules-cat-dot" style="background:${meta.dot}"></span>${meta.label}
+        </div>
+        ${rows}
+      </div>`;
+    }).join('');
+  }
+
+  const rulesOverlay = document.getElementById('rulesOverlay');
+  const rulesInfoBtn = document.getElementById('rulesInfoBtn');
+  const rulesCloseBtn = document.getElementById('rulesCloseBtn');
+  const rulesBody = document.getElementById('rulesPopupBody');
+
+  function openRulesPopup() {
+    if (!rulesBody.innerHTML) rulesBody.innerHTML = buildRulesPopup();
+    rulesOverlay.classList.add('open');
+  }
+  function closeRulesPopup() { rulesOverlay.classList.remove('open'); }
+
+  rulesInfoBtn.addEventListener('click', openRulesPopup);
+  rulesCloseBtn.addEventListener('click', closeRulesPopup);
+  rulesOverlay.addEventListener('click', function(e) { if (e.target === rulesOverlay) closeRulesPopup(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeRulesPopup(); });
 </script>
+
 </body>
 </html>
