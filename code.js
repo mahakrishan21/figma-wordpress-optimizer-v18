@@ -1890,10 +1890,14 @@ async function collectTypographyAndColors() {
     };
   });
 
-  // Near-duplicate colors (styles + top local)
+  // Scope styles to selection — only those with at least one use in the scanned nodes
+  const selectionColorStyles = colorStylesData.filter(s => s.usageCount > 0);
+  const selectionTextStyles  = textStylesData.filter(s => s.usageCount > 0);
+
+  // Near-duplicate colors (selection-scoped styles + local unlinked)
   const topLocal = [...localColorMap.values()].sort((a,b)=>b.count-a.count).slice(0,40);
   const hexPool = [
-    ...colorStylesData.map(s=>{
+    ...selectionColorStyles.map(s=>{
       var opLabel = (typeof s.opacity==='number' && s.opacity<0.99) ? ' '+Math.round(s.opacity*100)+'%' : '';
       return { hex:s.hex, opacity:s.opacity||1, visualHex:blendOnWhite(s.hex,s.opacity), label:s.name+opLabel, source:'style' };
     }),
@@ -1916,9 +1920,9 @@ async function collectTypographyAndColors() {
     if (group.length > 1) { gIdx.forEach(x=>usedIdx.add(x)); nearDupeGroups.push(group); }
   }
 
-  // Duplicate text styles (same core properties)
+  // Duplicate text styles (selection-scoped)
   const tsKeyMap = new Map();
-  for (const s of textStylesData) {
+  for (const s of selectionTextStyles) {
     const key = s.fontFamily+'|'+s.fontStyle+'|'+s.fontSize+'|'+s.lineHeightStr;
     if (!tsKeyMap.has(key)) tsKeyMap.set(key, []);
     tsKeyMap.get(key).push(s.name);
@@ -1948,31 +1952,29 @@ async function collectTypographyAndColors() {
   }
   const fontFamilies = [...famMap.values()].map(f=>({ family:f.family, styles:[...f.styles].sort(), count:f.count })).sort((a,b)=>b.count-a.count);
 
-  const unusedColorStyles = colorStylesData.filter(s=>!s.used);
-  const unusedTextStyles  = textStylesData.filter(s=>!s.used);
   const localColorList = [...localColorMap.values()].sort((a,b)=>b.count-a.count);
   const localTextList  = [...localTextMap.values()].sort((a,b)=>b.count-a.count);
 
   const summary = {
-    totalColorStyles: colorStylesData.length,
-    unusedColorStyles: unusedColorStyles.length,
+    totalColorStyles: selectionColorStyles.length,
+    unusedColorStyles: 0,
     localColorVariants: localColorList.length,
     totalLocalColorUses: localColorList.reduce((s,v)=>s+v.count,0),
     nearDupeColorGroups: nearDupeGroups.length,
-    totalTextStyles: textStylesData.length,
-    unusedTextStyles: unusedTextStyles.length,
+    totalTextStyles: selectionTextStyles.length,
+    unusedTextStyles: 0,
     localTextVariants: localTextList.length,
     totalLocalTextUses: localTextList.reduce((s,v)=>s+v.count,0),
     duplicateTextGroups: dupTextGroups.length
   };
   const payload = {
-    colorStyles: colorStylesData, localColors: localColorList,
-    nearDupeColorGroups: nearDupeGroups, unusedColorStyles,
-    textStyles: textStylesData, localTextCombos: localTextList,
-    duplicateTextGroups: dupTextGroups, unusedTextStyles,
+    colorStyles: selectionColorStyles, localColors: localColorList,
+    nearDupeColorGroups: nearDupeGroups, unusedColorStyles: [],
+    textStyles: selectionTextStyles, localTextCombos: localTextList,
+    duplicateTextGroups: dupTextGroups, unusedTextStyles: [],
     typeSizeInfo, fontFamilies, summary
   };
-  payload.textStyleGroups  = groupTextStyles(textStylesData);
+  payload.textStyleGroups  = groupTextStyles(selectionTextStyles);
   payload.recommendations  = buildRecommendations(payload);
   payload.opportunities    = buildOpportunities(payload);
   return payload;

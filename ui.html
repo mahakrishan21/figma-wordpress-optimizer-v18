@@ -240,19 +240,35 @@
 
     /* ── Progress ──────────────────────────────────────────────────────────── */
     .progress-wrap { margin-bottom: 10px; display: none; }
-    .progress-wrap.active { display: block; }
+    .progress-wrap.active { display: block; animation: pgFadeIn .15s ease both; }
+    .progress-wrap.fading { display: block; animation: pgFadeOut .3s ease both; pointer-events: none; }
+    @keyframes pgFadeIn  { from { opacity:0; transform:translateY(-2px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pgFadeOut { from { opacity:1; } to { opacity:0; } }
     .progress-meta {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;
+      font-size: 11px; color: var(--text-secondary); margin-bottom: 5px;
     }
     .progress-track {
-      height: 4px; background: var(--gray-200);
+      height: 6px; background: var(--gray-200);
       border-radius: var(--radius-full); overflow: hidden;
     }
     .progress-fill {
       height: 100%; background: var(--blue-500);
-      border-radius: var(--radius-full); transition: width .2s;
-      width: 10%;
+      border-radius: var(--radius-full);
+      transition: width .25s ease, background-color .3s ease;
+      min-width: 4%; width: 4%;
+    }
+    .progress-fill.indeterminate {
+      width: 100%; min-width: 0; transition: none;
+      background: linear-gradient(90deg, var(--blue-200) 0%, var(--blue-600) 40%, var(--blue-400) 70%, var(--blue-200) 100%);
+      background-size: 200% 100%;
+      animation: pgSweep 1.6s linear infinite;
+    }
+    .progress-fill.complete { background-color: var(--green-600) !important; width: 100% !important; }
+    .progress-fill.pg-error { background-color: var(--red-600)   !important; width: 100% !important; }
+    @keyframes pgSweep {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
     }
 
     /* ── Message bar ───────────────────────────────────────────────────────── */
@@ -940,6 +956,14 @@
     .opp-p3 { background:var(--blue-50);  color:var(--blue-700);  border:1px solid var(--blue-100); }
     .opp-empty { padding:8px 12px 10px; font-size:11px; color:var(--green-700); }
 
+    /* ── Spell results grid + collapse ──────────────────────────────────── */
+    #spellStatsGrid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+    #spellStatsGrid .stat-card { text-align: left; min-width: 0; }
+    #spellStatsSection.collapsed #spellStatsBody { display: none; }
+
+    /* ── Typo summary collapse ───────────────────────────────────────────── */
+    #typoSummarySection.collapsed #typoSummaryBody { display: none; }
+
     /* ── Text-style group headers ────────────────────────────────────────── */
     .ts-group-head {
       padding:5px 12px; background:var(--gray-50); border-bottom:1px solid var(--border);
@@ -1124,85 +1148,178 @@
 <!-- ═══════════════════ SPELLING & GRAMMAR TAB ══════════════════════════════ -->
 <div id="tab-spelling" class="tab-panel" role="tabpanel">
 
-  <div class="spell-intro">
-    <div class="spell-intro-title">Analyze text content</div>
-    <div class="spell-intro-desc">
-      Scans all text layers in the selected frame for spelling mistakes, grammar errors,
-      punctuation issues, and readability concerns. All analysis runs offline — no data leaves Figma.
+  <!-- Panel A: Empty state — no frame selected -->
+  <div id="spellEmpty" class="audit-empty">
+    <div class="es-scene">
+      <div class="es-card">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="6" y="6" width="28" height="28" rx="7" fill="var(--violet-100)"/>
+          <path d="M12 14h16M12 20h12M12 26h8" stroke="var(--violet-500)" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="es-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M13.5 3L6 11 2.5 7.5" stroke="var(--violet-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
-    <button class="btn btn-primary" id="spellScan" disabled>
+    <div class="es-title">Check spelling &amp; grammar</div>
+    <div class="es-desc">Select a frame or component on the canvas to scan its text layers for spelling, grammar, punctuation, and readability issues.</div>
+    <div class="es-actions">
+      <button class="btn" disabled>
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+        Scan Text Layers
+      </button>
+    </div>
+    <div class="es-helper">Select a frame to enable scanning.</div>
+  </div>
+
+  <!-- Panel B: Ready state — frame selected, scan not yet run -->
+  <div id="spellReady" style="display:none" class="audit-ready">
+    <div class="ar-check">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M5 13l4 4L19 7" stroke="var(--violet-600)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="ar-title">Frame ready to scan</div>
+    <div class="ar-frame-name" id="spellFrameName">—</div>
+    <button class="btn btn-primary ar-btn" id="spellScan">
       <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
       Scan Text Layers
     </button>
   </div>
 
-  <div class="progress-wrap" id="spellProgressWrap">
-    <div class="progress-meta">
-      <span id="spellProgressLabel">Collecting text layers…</span>
-      <span id="spellProgressPct">30%</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="spellProgressFill" style="width:30%"></div></div>
-  </div>
-  <div id="spellMsgBar" class="msg-bar"></div>
+  <!-- Panel C: Results (hidden until first scan runs) -->
+  <div id="spellResults" style="display:none">
 
-  <!-- Readability card (hidden until first scan) -->
-  <div id="readCard" class="read-card" style="display:none">
-    <div class="read-card-title">Readability Overview</div>
-    <div class="read-top">
-      <div class="score-ring" id="scoreRing">
-        <div class="score-num" id="scoreNum">–</div>
-        <div class="score-lbl">Score</div>
+    <!-- Toolbar -->
+    <div class="toolbar-card">
+      <button class="btn btn-primary" id="spellRescan">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+        Scan Text Layers
+      </button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="spellProgressWrap">
+      <div class="progress-meta">
+        <span id="spellProgressLabel">Collecting text layers…</span>
+        <span id="spellProgressPct"></span>
       </div>
-      <div>
-        <div class="score-grade" id="scoreGrade">–</div>
-        <div class="score-desc"  id="scoreDesc">Run a scan to see readability metrics.</div>
+      <div class="progress-track"><div class="progress-fill" id="spellProgressFill"></div></div>
+    </div>
+
+    <!-- Stats section (collapsible) -->
+    <div id="spellStatsSection">
+      <div class="stats-head" id="spellStatsHead">
+        <span class="stats-head-title">Spell Results</span>
+        <span class="stats-head-line"></span>
+        <button class="btn btn-sm" id="spellStatsChevron">Collapse</button>
+      </div>
+      <div id="spellStatsBody">
+        <div id="spellStatsGrid" class="stats-grid" style="margin-top:8px"></div>
       </div>
     </div>
-    <div class="metrics">
-      <div class="metric"><div class="metric-val" id="mWords">–</div><div class="metric-name">Total words</div></div>
-      <div class="metric"><div class="metric-val" id="mSentences">–</div><div class="metric-name">Sentences</div></div>
-      <div class="metric"><div class="metric-val" id="mAvg">–</div><div class="metric-name">Avg words/sent.</div></div>
+
+    <!-- Issue Summary -->
+    <div id="spellSummarySection">
+      <div class="stats-head">
+        <span class="stats-head-title">Issue Summary</span>
+        <span class="stats-head-line"></span>
+      </div>
+      <div class="summary-row">
+        <span id="spellTotalBadge" class="badge badge-gray">0 issues</span>
+        <span id="spellShownBadge" class="badge badge-gray">0 shown</span>
+        <div class="summary-btn-group">
+          <button class="btn btn-sm" id="spellToggleAll">Collapse All</button>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Spell stats (hidden until first scan) -->
-  <div id="spellStats" class="stats-grid" style="display:none"></div>
+    <!-- Spell issues -->
+    <div id="spellIssues" class="issue-groups"></div>
 
-  <!-- Spell issues -->
-  <div id="spellIssues" class="issue-groups"></div>
+  </div><!-- /spellResults -->
 </div>
 
 <!-- ═══════════════════ TYPOGRAPHY & COLORS TAB ════════════════════════════ -->
 <div id="tab-typo" class="tab-panel" role="tabpanel">
 
-  <!-- Intro & scan button -->
-  <div class="typo-intro">
-    <div class="typo-intro-title">Typography &amp; Color Audit</div>
-    <div class="typo-intro-desc">
-      Scans the current page for color and text style usage. Finds unlinked fills,
-      near-duplicate colors, unused styles, and unlinked text layers. Use this to
-      clean up legacy files and prepare designs for handoff.
+  <!-- Panel A: Empty state — no frame selected -->
+  <div id="typoEmpty" class="audit-empty">
+    <div class="es-scene">
+      <div class="es-card">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="6" y="6" width="28" height="28" rx="7" fill="var(--blue-100)"/>
+          <circle cx="14" cy="21" r="3.5" fill="var(--blue-500)"/>
+          <circle cx="23" cy="14" r="3.5" fill="var(--violet-500)"/>
+          <circle cx="29" cy="23" r="3.5" fill="var(--green-600)"/>
+        </svg>
+      </div>
+      <div class="es-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="4.5" cy="8" r="2.5" fill="var(--blue-500)"/>
+          <circle cx="11.5" cy="8" r="2.5" fill="var(--violet-600)"/>
+        </svg>
+      </div>
     </div>
-    <button class="btn btn-primary" id="typoClarify" disabled>
+    <div class="es-title">Audit colors &amp; typography</div>
+    <div class="es-desc">Select a frame or component on the canvas to scan its color styles, text styles, and unlinked fills.</div>
+    <div class="es-actions">
+      <button class="btn" disabled>
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+        Scan File
+      </button>
+    </div>
+    <div class="es-helper">Select a frame to enable scanning.</div>
+  </div>
+
+  <!-- Panel B: Ready state — frame selected, scan not yet run -->
+  <div id="typoReady" style="display:none" class="audit-ready">
+    <div class="ar-check">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M5 13l4 4L19 7" stroke="var(--green-600)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="ar-title">Frame ready to scan</div>
+    <div class="ar-frame-name" id="typoFrameName">—</div>
+    <button class="btn btn-primary ar-btn" id="typoClarify">
       <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
       Scan File
     </button>
   </div>
 
-  <div class="progress-wrap" id="typoProgressWrap" style="margin:0 12px">
-    <div class="progress-meta">
-      <span id="typoProgressLabel">Analyzing styles…</span>
-      <span id="typoProgressPct"></span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="typoProgressFill" style="width:40%"></div></div>
-  </div>
-  <div id="typoMsgBar" class="msg-bar" style="margin:0 12px 4px"></div>
-
-  <!-- Results (hidden until scan runs) -->
+  <!-- Panel C: Results (hidden until scan runs) -->
   <div id="typoResults" class="typo-results" style="display:none">
 
-    <!-- Summary -->
-    <div id="typoSummaryGrid" class="stats-grid" style="padding:16px 0px"></div>
+    <!-- Toolbar -->
+    <div class="toolbar-card">
+      <button class="btn btn-primary" id="typoRescan">
+        <svg class="btn-icon" viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 1 0 3.653 9.713l3.567 3.567a.75.75 0 1 0 1.06-1.06l-3.567-3.567A5.5 5.5 0 0 0 6.5 1zM2.5 6.5a4 4 0 1 1 8 0 4 4 0 0 1-8 0z"/></svg>
+        Scan File
+      </button>
+    </div>
+
+    <!-- Progress (moved inside results) -->
+    <div class="progress-wrap" id="typoProgressWrap">
+      <div class="progress-meta">
+        <span id="typoProgressLabel">Analyzing styles…</span>
+        <span id="typoProgressPct"></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="typoProgressFill"></div></div>
+    </div>
+
+    <!-- Summary stats (collapsible) -->
+    <div id="typoSummarySection">
+      <div class="stats-head" id="typoSummaryHead">
+        <span class="stats-head-title">Color &amp; Type Summary</span>
+        <span class="stats-head-line"></span>
+        <button class="btn btn-sm" id="typoSummaryChevron">Collapse</button>
+      </div>
+      <div id="typoSummaryBody">
+        <div id="typoSummaryGrid" class="stats-grid" style="margin-top:8px"></div>
+      </div>
+    </div>
 
     <!-- ── COLORS ── -->
     <div class="typo-section" id="colorsSection">
@@ -1276,6 +1393,9 @@
   let ignoredAuditKeys = new Set();
   let ignoredSpellKeys = new Set();
   let auditHasRun = false;
+  let spellHasRun = false;
+  let spellTotalIssues = 0;
+  let typoHasRun = false;
   let hasSelection = false;
   let lastIssues = [];
   const DEV_NOTE_TYPES = new Set(['auto-line-height', 'section-overlap', 'no-mobile-frame']);
@@ -1291,15 +1411,86 @@
   });
 
   // ── Audit busy state ─────────────────────────────────────────────────────
-  function setAuditBusy(busy, stage = 'Running audit…', done = 0, total = 0) {
-    AUDIT_BTNS.forEach(id => $(id).disabled = busy);
-    const wrap = $('progressWrap');
-    wrap.classList.toggle('active', busy);
+  // ── Progress bar utilities ────────────────────────────────────────────────
+  const PG = {
+    audit: { wrap:'progressWrap',      fill:'progressFill',      lbl:'progressLabel',      pct:'progressPct'      },
+    spell: { wrap:'spellProgressWrap', fill:'spellProgressFill', lbl:'spellProgressLabel', pct:'spellProgressPct' },
+    typo:  { wrap:'typoProgressWrap',  fill:'typoProgressFill',  lbl:'typoProgressLabel',  pct:'typoProgressPct'  },
+  };
+
+  function showProgress(key, label) {
+    var c = PG[key]; if (!c) return;
+    var fill = $(c.fill); if (!fill) return;
+    fill.className = 'progress-fill indeterminate';
+    fill.style.width = '';
+    $(c.pct).textContent = '';
+    $(c.lbl).textContent = label || 'Working…';
+    var wrap = $(c.wrap);
+    wrap.classList.remove('fading');
+    wrap.classList.add('active');
+  }
+
+  function updateProgress(key, done, total, label) {
+    var c = PG[key]; if (!c) return;
+    var fill = $(c.fill); if (!fill) return;
+    var wrap = $(c.wrap);
+    if (!wrap.classList.contains('active')) showProgress(key, label);
+    var pct = total ? Math.min(99, Math.round((done / total) * 100)) : 4;
+    fill.className = 'progress-fill';
+    fill.style.width = Math.max(4, pct) + '%';
+    $(c.pct).textContent = pct + '%';
+    if (label) $(c.lbl).textContent = label + ' · ' + done + ' / ' + total;
+  }
+
+  function completeProgress(key) {
+    var c = PG[key]; if (!c) return;
+    var wrap = $(c.wrap); if (!wrap) return;
+    if (!wrap.classList.contains('active')) return;
+    var fill = $(c.fill);
+    fill.className = 'progress-fill complete';
+    fill.style.width = '100%';
+    $(c.pct).textContent = '100%';
+    setTimeout(function() { _hideProgress(key); }, 500);
+  }
+
+  function errorProgress(key, label) {
+    var c = PG[key]; if (!c) return;
+    var fill = $(c.fill); if (!fill) return;
+    fill.className = 'progress-fill pg-error';
+    fill.style.width = '100%';
+    $(c.pct).textContent = '';
+    if (label) $(c.lbl).textContent = label;
+    var wrap = $(c.wrap);
+    wrap.classList.remove('fading');
+    wrap.classList.add('active');
+    setTimeout(function() { _hideProgress(key); }, 1200);
+  }
+
+  function _hideProgress(key) {
+    var c = PG[key]; if (!c) return;
+    var wrap = $(c.wrap); if (!wrap) return;
+    wrap.classList.add('fading');
+    wrap.classList.remove('active');
+    setTimeout(function() {
+      wrap.classList.remove('fading');
+      var fill = $(c.fill);
+      if (fill) { fill.className = 'progress-fill'; fill.style.width = ''; }
+    }, 300);
+  }
+
+  function setAuditBusy(busy, stage, done, total) {
+    stage = stage || 'Running audit…';
+    done  = done  || 0;
+    total = total || 0;
+    AUDIT_BTNS.forEach(function(id) { var el = $(id); if (el) el.disabled = busy; });
     if (busy) {
-      const pct = total ? Math.round((done / total) * 100) : 12;
-      $('progressLabel').textContent = total ? `${stage} · ${done} of ${total}` : stage;
-      $('progressFill').style.width = pct + '%';
-      $('progressPct').textContent = pct + '%';
+      if (total > 0) {
+        updateProgress('audit', done, total, stage);
+      } else {
+        showProgress('audit', stage);
+      }
+    } else {
+      completeProgress('audit');
     }
   }
 
@@ -1734,11 +1925,21 @@
     });
   });
 
-  $('typoClarify').onclick = () => {
-    $('typoClarify').disabled = true;
-    $('typoProgressWrap').classList.add('active');
+  function doTypoScan() {
+    if ($('typoClarify')) $('typoClarify').disabled = true;
+    if ($('typoRescan'))  $('typoRescan').disabled  = true;
+    showProgress('typo', 'Analyzing colors & typography…');
     parent.postMessage({ pluginMessage: { type: 'collect-typo-colors' } }, '*');
-  };
+  }
+
+  $('typoClarify').onclick = doTypoScan;
+  $('typoRescan').onclick  = doTypoScan;
+
+  // ── Typo summary collapse ─────────────────────────────────────────────────
+  $('typoSummaryHead').addEventListener('click', () => {
+    const collapsed = $('typoSummarySection').classList.toggle('collapsed');
+    $('typoSummaryChevron').textContent = collapsed ? 'Expand' : 'Collapse';
+  });
 
   // type: 'info' (blue badge always) | 'issue' (red when >0, green when 0)
   function renderTypoBlock(id, title, subtitle, iconSvg, count, bodyHtml, type, collapsed) {
@@ -1970,9 +2171,15 @@
 
 
   function renderTypoColors(data) {
-    $('typoClarify').disabled = false;
-    $('typoProgressWrap').classList.remove('active');
+    if ($('typoClarify')) $('typoClarify').disabled = false;
+    if ($('typoRescan'))  $('typoRescan').disabled  = false;
+    completeProgress('typo');
+    // Transition to results panel
+    typoHasRun = true;
+    $('typoReady').style.display = 'none';
     $('typoResults').style.display = '';
+    $('typoSummarySection').classList.remove('collapsed');
+    $('typoSummaryChevron').textContent = 'Collapse';
     ['colorsSection','typoSection'].forEach(id => $(id).classList.remove('collapsed'));
     $('colorsToggle').textContent = 'Collapse';
     $('typoToggle').textContent   = 'Collapse';
@@ -2125,7 +2332,7 @@
           Merged into <strong>${escHtml(msg.name)}</strong> — ${msg.updated} layer${msg.updated!==1?'s':''} updated.
         </div>`;
       }
-      showMsg($('typoMsgBar'), `✓ Merged into "${msg.name}" (${msg.updated} layer${msg.updated!==1?'s':''} updated). Re-scan to refresh.`, 'success');
+      showToast(`✓ Merged into "${msg.name}" (${msg.updated} layer${msg.updated!==1?'s':''} updated). Re-scan to refresh.`, 'success');
       return;
     }
     if (msg.type === 'merge-color-error') {
@@ -2134,7 +2341,7 @@
         const confirmBtn = group.querySelector('.merge-confirm');
         if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Merge'; }
       }
-      showMsg($('typoMsgBar'), 'Merge failed: ' + msg.message, 'error');
+      showToast('Merge failed: ' + msg.message, 'error');
       return;
     }
     if (msg.type === 'busy') { setAuditBusy(true, msg.stage || 'Running…'); return; }
@@ -2142,17 +2349,40 @@
     if (msg.type === 'idle')  { setAuditBusy(false); return; }
     if (msg.type === 'selection-changed') {
       hasSelection = msg.count > 0;
-      $('spellScan').disabled    = !hasSelection;
-      $('typoClarify').disabled  = !hasSelection;
+      const selName = msg.count === 1 ? msg.names[0] : `${msg.count} items selected`;
+      // Audit panels
       if (!auditHasRun) {
         if (hasSelection) {
-          const name = msg.count === 1 ? msg.names[0] : `${msg.count} items selected`;
-          $('arFrameName').textContent = name;
+          $('arFrameName').textContent = selName;
           $('auditEmpty').style.display = 'none';
           $('auditReady').style.display = '';
         } else {
           $('auditReady').style.display = 'none';
           $('auditEmpty').style.display = '';
+        }
+      }
+      // Spell panels
+      if ($('spellScan')) $('spellScan').disabled = !hasSelection;
+      if (!spellHasRun) {
+        if (hasSelection) {
+          $('spellFrameName').textContent = selName;
+          $('spellEmpty').style.display = 'none';
+          $('spellReady').style.display = '';
+        } else {
+          $('spellReady').style.display = 'none';
+          $('spellEmpty').style.display = '';
+        }
+      }
+      // Typo panels
+      if ($('typoClarify')) $('typoClarify').disabled = !hasSelection;
+      if (!typoHasRun) {
+        if (hasSelection) {
+          $('typoFrameName').textContent = selName;
+          $('typoEmpty').style.display = 'none';
+          $('typoReady').style.display = '';
+        } else {
+          $('typoReady').style.display = 'none';
+          $('typoEmpty').style.display = '';
         }
       }
       return;
@@ -2202,19 +2432,30 @@
       $('auditResults').style.display = 'none';
       $('auditReady').style.display = 'none';
       $('auditEmpty').style.display = '';
+      // Reset spell panels
+      spellHasRun = false;
+      $('spellResults').style.display = 'none';
+      $('spellReady').style.display = 'none';
+      $('spellEmpty').style.display = '';
+      // Reset typo panels
+      typoHasRun = false;
+      $('typoResults').style.display = 'none';
+      $('typoReady').style.display = 'none';
+      $('typoEmpty').style.display = '';
       showToast('No frame selected — select a frame on the canvas first.', 'error');
       return;
     }
     if (msg.type === 'texts-collected') { analyzeTexts(msg.texts || []); return; }
     if (msg.type === 'typo-colors-result') { renderTypoColors(msg.data); return; }
     if (msg.type === 'typo-colors-error') {
-      $('typoProgressWrap').classList.remove('active');
-      $('typoClarify').disabled = false;
-      showMsg($('typoMsgBar'), 'Error: ' + msg.message, 'error');
+      errorProgress('typo', 'Scan failed');
+      if ($('typoClarify')) $('typoClarify').disabled = false;
+      if ($('typoRescan'))  $('typoRescan').disabled  = false;
+      showToast('Scan error: ' + msg.message, 'error');
       return;
     }
     if (msg.type === 'typo-colors-busy') {
-      $('typoProgressWrap').classList.add('active');
+      showProgress('typo', 'Analyzing colors & typography…');
       return;
     }
   };
@@ -2480,13 +2721,31 @@
     return `${s>0?'…':''}${before}<mark class="hl">${target}</mark>${after}${e<text.length?'…':''}`;
   }
 
+  // ── Spell summary badges ──────────────────────────────────────────────────
+  function updateSpellSummary(total, shown) {
+    const tb = $('spellTotalBadge'), sb = $('spellShownBadge');
+    if (tb) { tb.textContent = total + ' issue' + (total !== 1 ? 's' : ''); tb.className = 'badge ' + (total > 0 ? 'badge-red' : 'badge-gray'); }
+    if (sb) { sb.textContent = shown + ' shown'; sb.className = 'badge badge-gray'; }
+  }
+
   // ── Main analysis ─────────────────────────────────────────────────────────
   function analyzeTexts(texts) {
-    $('spellScan').disabled = false;
-    $('spellProgressWrap').classList.remove('active');
+    if ($('spellRescan')) $('spellRescan').disabled = false;
+    completeProgress('spell');
+
+    // Transition to results panel
+    spellHasRun = true;
+    $('spellReady').style.display = 'none';
+    $('spellResults').style.display = '';
+    $('spellStatsSection').classList.remove('collapsed');
+    $('spellStatsChevron').textContent = 'Collapse';
+    $('spellToggleAll').textContent = 'Collapse All';
 
     if (!texts.length) {
-      showMsg($('spellMsgBar'), 'No text layers found in the current scope.', 'warning');
+      showToast('No text layers found in the selected frame.', 'warning');
+      $('spellStatsGrid').innerHTML = '';
+      $('spellIssues').innerHTML = `<div class="empty"><div class="empty-icon">📝</div><div class="empty-title">No text found</div><div class="empty-desc">The selected frame has no visible text layers.</div></div>`;
+      updateSpellSummary(0, 0);
       return;
     }
 
@@ -2502,7 +2761,6 @@
         byCategory[p.cat === 'grammar' ? 'grammar' : p.cat === 'readability' ? 'readability' : 'punctuation']
           .push({ ...p, nodeId:id, path, ctx:ctxSnippet(text,p.index,p.word) }));
 
-      // Long sentence detection
       const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 2);
       if (sentences.some(s => s.trim().split(/\s+/).length > 30)) {
         byCategory.readability.push({
@@ -2514,39 +2772,44 @@
       }
     });
 
-    // Readability card
     const read = readability(texts);
-    $('readCard').style.display = 'block';
-    $('scoreNum').textContent = read.score || '–';
-    $('scoreGrade').textContent = read.grade;
-    $('scoreDesc').textContent = read.desc;
-    $('scoreRing').className = 'score-ring ' + read.cls;
-    $('mWords').textContent = read.words || '–';
-    $('mSentences').textContent = read.sents || '–';
-    $('mAvg').textContent = read.avg || '–';
-
     const total = Object.values(byCategory).reduce((n,a) => n+a.length, 0);
+    spellTotalIssues = total;
 
-    // Stats
-    $('spellStats').style.display = 'grid';
-    $('spellStats').innerHTML = [
-      { l:'Text layers',   v:texts.length,                cls:'' },
-      { l:'Spelling',      v:byCategory.spelling.length,  cls:byCategory.spelling.length   ? 'bad':'ok' },
-      { l:'Grammar',       v:byCategory.grammar.length,   cls:byCategory.grammar.length    ? 'bad':'ok' },
-      { l:'Punctuation',   v:byCategory.punctuation.length,cls:byCategory.punctuation.length? 'bad':'ok' }
-    ].map(({ l, v, cls }) =>
-      `<div class="stat-card"><div class="stat-val ${cls}">${v}</div><div class="stat-lbl">${l}</div></div>`
+    // ── Unified stats grid (readability + issue counts) ────────────────────
+    const scoreCls = read.score >= 65 ? 'ok' : read.score >= 35 ? 'cat-buttons' : 'bad';
+    const statDefs = [
+      { l:'Text Layers',       v:texts.length,                      cls:'muted' },
+      { l:'Readability Score', v:read.score || '–',                 cls:scoreCls, sub:read.grade },
+      { l:'Words',             v:read.words || '–',                 cls:'muted' },
+      { l:'Sentences',         v:read.sents || '–',                 cls:'muted' },
+      { l:'Avg Words/Sent.',   v:read.avg   || '–',                 cls:'muted' },
+      { l:'Spelling',          v:byCategory.spelling.length,        cls:byCategory.spelling.length    ? 'cat-accuracy'  : 'ok' },
+      { l:'Grammar',           v:byCategory.grammar.length,         cls:byCategory.grammar.length     ? 'cat-buttons'   : 'ok' },
+      { l:'Punctuation',       v:byCategory.punctuation.length,     cls:byCategory.punctuation.length  ? 'cat-structure' : 'ok' },
+      { l:'Readability',       v:byCategory.readability.length,     cls:byCategory.readability.length  ? 'cat-buttons'   : 'ok' },
+    ];
+    $('spellStatsGrid').innerHTML = statDefs.map(({ l, v, cls, sub }) =>
+      `<div class="stat-card">
+        <div class="stat-val ${cls}">${v}</div>
+        <div class="stat-lbl">${l}</div>
+        ${sub ? `<div class="stat-sub">${escHtml(sub)}</div>` : ''}
+      </div>`
     ).join('');
 
+    // Toast result
+    showToast(
+      total === 0
+        ? 'Scanned ' + texts.length + ' text layer' + (texts.length > 1 ? 's' : '') + ' — no issues found.'
+        : 'Scanned ' + texts.length + ' text layer' + (texts.length > 1 ? 's' : '') + ' — ' + total + ' issue' + (total > 1 ? 's' : '') + ' found.',
+      total === 0 ? 'success' : 'warning'
+    );
+
     if (!total) {
-      showMsg($('spellMsgBar'), `Scanned ${texts.length} text layer${texts.length>1?'s':''} — no issues found.`, 'success');
       $('spellIssues').innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">All clear</div><div class="empty-desc">No spelling, grammar, or punctuation issues found.</div></div>`;
+      updateSpellSummary(0, 0);
       return;
     }
-
-    showMsg($('spellMsgBar'),
-      `Scanned ${texts.length} text layer${texts.length>1?'s':''} — ${total} issue${total>1?'s':''} found.`,
-      'warning');
 
     const SPELL_GROUPS = [
       { key:'spelling',    label:'Spelling',    dot:'dot-spelling' },
@@ -2576,42 +2839,57 @@
         <div class="group-head">
           <div class="group-dot ${dot}"></div>
           <div class="group-name">${label}</div>
-          <span class="group-count">${items.length}</span>
+          <span class="group-count cat-${key === 'spelling' ? 'accuracy' : key === 'grammar' ? 'buttons' : key === 'punctuation' ? 'structure' : 'assets'}">${items.length}</span>
           <span class="chevron">▾</span>
         </div>
         <div class="issue-list">${rows}</div>
       </div>`;
     }).join('');
 
-    // Wire up spell group toggles
     $('spellIssues').querySelectorAll('.group-head').forEach(h =>
       h.addEventListener('click', () => h.closest('.issue-group').classList.toggle('collapsed')));
 
-    // Wire up focus
     $('spellIssues').querySelectorAll('[data-focus]').forEach(b =>
       b.addEventListener('click', () =>
         parent.postMessage({ pluginMessage:{ type:'focus-node', nodeId:b.dataset.focus } }, '*')));
 
-    // Wire up ignore
     $('spellIssues').querySelectorAll('[data-spell-sid]').forEach(b =>
       b.addEventListener('click', () => {
         const sid = b.dataset.spellSid;
         ignoredSpellKeys.add(sid);
         const item = $('spellIssues').querySelector(`[data-sid="${sid}"]`);
         if (item) item.remove();
+        const shown = $('spellIssues').querySelectorAll('.spell-item').length;
+        updateSpellSummary(spellTotalIssues, shown);
       }));
+
+    updateSpellSummary(total, total);
   }
 
-  // ── Spell scan button ─────────────────────────────────────────────────────
-  $('spellScan').onclick = () => {
-    $('spellScan').disabled = true;
-    $('spellProgressWrap').classList.add('active');
-    $('spellProgressLabel').textContent = 'Collecting text layers…';
-    $('spellProgressFill').style.width = '30%';
-    $('spellProgressPct').textContent = '30%';
-    showMsg($('spellMsgBar'), '', 'info');
+  // ── Spell scan trigger ────────────────────────────────────────────────────
+  function doSpellScan() {
+    if ($('spellScan'))   $('spellScan').disabled = true;
+    if ($('spellRescan')) $('spellRescan').disabled = true;
+    showProgress('spell', 'Collecting text layers…');
     parent.postMessage({ pluginMessage:{ type:'collect-texts' } }, '*');
-  };
+  }
+
+  $('spellScan').onclick   = doSpellScan;
+  $('spellRescan').onclick = doSpellScan;
+
+  // ── Spell stats collapse ──────────────────────────────────────────────────
+  $('spellStatsHead').addEventListener('click', () => {
+    const collapsed = $('spellStatsSection').classList.toggle('collapsed');
+    $('spellStatsChevron').textContent = collapsed ? 'Expand' : 'Collapse';
+  });
+
+  // ── Spell collapse / expand all ───────────────────────────────────────────
+  $('spellToggleAll').addEventListener('click', () => {
+    const groups = Array.from($('spellIssues').querySelectorAll('.issue-group'));
+    const anyExpanded = groups.some(g => !g.classList.contains('collapsed'));
+    groups.forEach(g => anyExpanded ? g.classList.add('collapsed') : g.classList.remove('collapsed'));
+    $('spellToggleAll').textContent = anyExpanded ? 'Expand All' : 'Collapse All';
+  });
 
   // ── Rules reference popup ──────────────────────────────────────────────────
   const RULE_CATALOG = [
